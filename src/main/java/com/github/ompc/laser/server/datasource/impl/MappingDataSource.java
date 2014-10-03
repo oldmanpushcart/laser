@@ -214,7 +214,7 @@ public class MappingDataSource implements DataSource {
         bufferLoaderDaemon.start();
 
         final long finishTime = System.currentTimeMillis();
-        log.info("DataSource(file:{}) was inited, pos={}'BUFFER_SIZE={};cost={}ms.",
+        log.info("DataSource(file:{}) was inited, pos={};BUFFER_SIZE={};cost={}ms.",
                 new Object[]{dataFile, cursor, mapBuffer.capacity(), (finishTime - startTime)});
 
     }
