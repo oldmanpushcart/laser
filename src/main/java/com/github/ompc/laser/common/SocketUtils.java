@@ -60,7 +60,7 @@ public class SocketUtils {
                 resp.setLineNum(dis.readInt());
                 final int len = dis.readInt();
 
-                while (dis.available() >= len) {
+                while (dis.available() < len) {
                     // TODO : spin wait for timeout
                     log.info("spin for read, available={};len={}",dis.available(), len);
                 }
