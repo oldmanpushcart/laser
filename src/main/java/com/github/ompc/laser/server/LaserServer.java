@@ -39,10 +39,7 @@ public class LaserServer {
     private final LaserOptions options;
 
     private ServerSocket serverSocket;
-
     private volatile boolean isRunning = true;
-    private AtomicInteger reqCounter = new AtomicInteger(0);
-
 
     public LaserServer(DataSource dataSource, CountDownLatch countDown, ExecutorService executorService, ServerConfiger configer, LaserOptions options) throws IOException {
         this.countDown = countDown;
@@ -112,6 +109,7 @@ public class LaserServer {
         final ConcurrentLinkedQueue<Row> rowQueue = new ConcurrentLinkedQueue<>();
         final DataOutputStream dos = getDataOutputStream(socket.getOutputStream());
         final DataInputStream dis = new DataInputStream(socket.getInputStream());
+        final AtomicInteger reqCounter = new AtomicInteger(0);
 
         log.info("{} was connected.", format(socket));
         // init client handler's reader
@@ -145,7 +143,7 @@ public class LaserServer {
 //                        continue;
 //                    }
 
-                    while( reqCounter.getAndDecrement() > 0 ) {
+                    while( reqCounter.get() > 0 ) {
                         final Row row = dataSource.getRow();
                         if (row.getLineNum() >= 0) {
                             write(dos, new GetDataResp(row.getLineNum(), row.getData()));
@@ -156,6 +154,7 @@ public class LaserServer {
                             write(dos, new GetEofResp());
                             dos.flush();
                         }//if
+                        reqCounter.decrementAndGet();
                     }
 
 
