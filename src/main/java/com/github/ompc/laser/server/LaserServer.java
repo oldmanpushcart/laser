@@ -60,7 +60,7 @@ public class LaserServer {
     public void startup() throws IOException {
         serverSocket = new ServerSocket();
         serverSocket.setSoTimeout(options.getServerSocketTimeout());
-        serverSocket.bind(new InetSocketAddress(configer.getPort()),24);
+        serverSocket.bind(new InetSocketAddress(configer.getPort()),options.getServerBacklog());
 
         // init accept thread
         executorService.execute(() -> {

@@ -21,6 +21,7 @@ public final class LaserOptions {
     private int clientWorkNumbers;
 
     private int serverSocketTimeout;
+    private int serverBacklog;
     private int serverChildSocketTimeout;
     private int serverChildReceiverBufferSize;
     private int serverChildSendBufferSize;
@@ -48,6 +49,7 @@ public final class LaserOptions {
         clientWorkNumbers = Integer.valueOf(properties.getProperty("client.work_numbers"));
 
         serverSocketTimeout = Integer.valueOf(properties.getProperty("server.socket_timeout"));
+        serverBacklog = Integer.valueOf(properties.getProperty("server.backlog"));
         serverChildSocketTimeout = Integer.valueOf(properties.getProperty("server.child_socket_timeout"));
         serverChildReceiverBufferSize = Integer.valueOf(properties.getProperty("server.child_receiver_buffer_size"));
         serverChildSendBufferSize = Integer.valueOf(properties.getProperty("server.child_send_buffer_size"));
@@ -123,5 +125,9 @@ public final class LaserOptions {
 
     public int[] getServerChildPerformancePreferences() {
         return serverChildPerformancePreferences;
+    }
+
+    public int getServerBacklog() {
+        return serverBacklog;
     }
 }
