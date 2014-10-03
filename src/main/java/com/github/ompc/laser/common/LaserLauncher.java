@@ -25,6 +25,7 @@ public class LaserLauncher {
 
     /**
      * 启动服务器
+     *
      * @param args
      */
     private static void startServer(String... args) throws IOException, InterruptedException {
@@ -41,7 +42,7 @@ public class LaserLauncher {
         server.startup();
 
         // registe shutdown
-        getRuntime().addShutdownHook(new Thread(()->{
+        getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 currentThread().setName("server-shutdown-hook");
                 server.shutdown();
@@ -55,6 +56,7 @@ public class LaserLauncher {
 
     /**
      * 启动客户端
+     *
      * @param args
      */
     private static void startClient(String... args) throws IOException, InterruptedException {
@@ -62,13 +64,13 @@ public class LaserLauncher {
         final int worksNum = Runtime.getRuntime().availableProcessors();
 
         final ClientConfiger configer = new ClientConfiger();
-        configer.setServerAddress(new InetSocketAddress(args[1],Integer.valueOf(args[2])));
+        configer.setServerAddress(new InetSocketAddress(args[1], Integer.valueOf(args[2])));
         configer.setDataFile(new File(args[3]));
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
         final ExecutorService executorService = Executors.newCachedThreadPool();
 
-        for( int i=0; i<worksNum; i++ ) {
+        for (int i = 0; i < worksNum; i++) {
             final LaserClient client = new LaserClient(countDown, executorService, configer);
             client.connect();
         }
@@ -79,12 +81,12 @@ public class LaserLauncher {
 
     public static void main(String... args) throws IOException, InterruptedException {
 
-        if( args[0] == "server" ) {
+        if (args[0] == "server") {
             startServer(args);
-        } else if( args[0] == "client" ) {
+        } else if (args[0] == "client") {
             startClient(args);
         } else {
-            throw new IllegalArgumentException("illegal args[0]="+args[0]);
+            throw new IllegalArgumentException("illegal args[0]=" + args[0]);
         }
 
     }

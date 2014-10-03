@@ -1,7 +1,6 @@
 package com.github.ompc.laser.server;
 
 import java.io.File;
-import java.net.InetSocketAddress;
 
 /**
  * Server端的配置

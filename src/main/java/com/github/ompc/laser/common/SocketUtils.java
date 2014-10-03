@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.net.Socket;
 
 import static com.github.ompc.laser.common.LaserConstant.*;
-import static com.github.ompc.laser.common.LaserConstant.PRO_MC;
-import static com.github.ompc.laser.common.LaserConstant.PRO_REQ_GETDATA;
 
 /**
  * Socket工具类
@@ -22,6 +20,7 @@ public class SocketUtils {
 
     /**
      * 格式化链接输出
+     *
      * @param socket
      * @return
      */
@@ -34,6 +33,7 @@ public class SocketUtils {
 
     /**
      * 读数据
+     *
      * @param dis
      * @return
      * @throws IOException
@@ -42,12 +42,12 @@ public class SocketUtils {
         final int type = dis.readInt();
 
         // check MC
-        if( (type & PRO_MC) >> 16 != PRO_MC ) {
-            throw new IOException("illegal type="+type);
+        if ((type & PRO_MC) >> 16 != PRO_MC) {
+            throw new IOException("illegal type=" + type);
         }
 
         final Protocol p;
-        switch( type ) {
+        switch (type) {
             case PRO_REQ_GETDATA:
                 p = new GetDataReq();
                 break;
@@ -75,6 +75,7 @@ public class SocketUtils {
 
     /**
      * 写数据
+     *
      * @param dos
      * @param p
      * @throws IOException
@@ -83,8 +84,8 @@ public class SocketUtils {
 
         dos.writeInt(p.getType());
 
-        if( p instanceof GetDataResp) {
-            final GetDataResp resp = (GetDataResp)p;
+        if (p instanceof GetDataResp) {
+            final GetDataResp resp = (GetDataResp) p;
             dos.writeInt(resp.getLineNum());
             dos.writeInt(resp.getData().length);
             dos.write(resp.getData());

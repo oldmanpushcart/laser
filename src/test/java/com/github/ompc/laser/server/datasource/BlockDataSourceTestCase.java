@@ -14,7 +14,7 @@ public class BlockDataSourceTestCase extends AbstractDataSourceTestCase {
 
     @Override
     DataSource getDataSource(boolean reset) {
-        if( reset ) {
+        if (reset) {
             return currentDataSource = new BlockDataSource(
                     new File("./src/test/resources/data/data_1000")
 //                    new File("/Users/vlinux/data/data")

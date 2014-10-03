@@ -32,16 +32,16 @@ public class BlockDataSource implements DataSource {
 
     @Override
     public void destroy() throws IOException {
-        if( null != reader ) {
+        if (null != reader) {
             reader.close();
-            log.info("DataSource(file:{}) was destroyed.",dataFile);
+            log.info("DataSource(file:{}) was destroyed.", dataFile);
         }
     }
 
     @Override
     public Row getRow() throws IOException {
         final String line = reader.readLine();
-        if( null == line ) {
+        if (null == line) {
             throw new EOFException();
         }
         return new Row(lineCounter.getAndIncrement(), line.getBytes());

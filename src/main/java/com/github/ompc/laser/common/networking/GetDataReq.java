@@ -1,7 +1,5 @@
 package com.github.ompc.laser.common.networking;
 
-import com.github.ompc.laser.common.LaserConstant;
-
 import static com.github.ompc.laser.common.LaserConstant.PRO_REQ_GETDATA;
 
 /**

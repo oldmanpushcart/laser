@@ -54,7 +54,7 @@ public class LaserClient {
 
         // init writer
         executorService.execute(() -> {
-            Thread.currentThread().setName("client-"+format(socket)+"-writer");
+            Thread.currentThread().setName("client-" + format(socket) + "-writer");
             try {
                 while (isRunning) {
                     write(dos, new GetDataReq());
@@ -67,15 +67,15 @@ public class LaserClient {
 
         // init reader
         executorService.execute(() -> {
-            Thread.currentThread().setName("client-"+format(socket)+"-reader");
+            Thread.currentThread().setName("client-" + format(socket) + "-reader");
             try {
-                while(isRunning) {
+                while (isRunning) {
                     final Protocol p = SocketUtils.read(dis);
-                    if( p instanceof GetEofResp) {
+                    if (p instanceof GetEofResp) {
                         countDown.countDown();
-                        log.info("{} receive EOF.",format(socket));
+                        log.info("{} receive EOF.", format(socket));
                         break;
-                    } else if( p instanceof GetDataResp) {
+                    } else if (p instanceof GetDataResp) {
                         // TODO : write to ringbuffer
                     } else {
                         // can't happen

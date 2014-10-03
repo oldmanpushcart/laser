@@ -1,6 +1,5 @@
 package com.github.ompc.laser.server;
 
-import com.github.ompc.laser.common.SocketUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
@@ -20,7 +19,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
 import static com.github.ompc.laser.common.SocketUtils.*;
-import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
 
 /**
@@ -31,7 +29,7 @@ public class LaserServer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final static int QUEUE_SIZE = 1024*1024;//1M
+    private final static int QUEUE_SIZE = 1024 * 1024;//1M
 
     private final DataSource dataSource;
     private final CountDownLatch countDown;
@@ -90,7 +88,7 @@ public class LaserServer {
         executorService.execute(() -> {
             currentThread().setName("server-" + format(socket) + "-reader");
             try {
-                while(isRunning) {
+                while (isRunning) {
                     final GetDataReq req = (GetDataReq) read(dis);
                     //TODO : check read protocol's type
                     final Row row = dataSource.getRow();
@@ -107,9 +105,9 @@ public class LaserServer {
         executorService.execute(() -> {
             currentThread().setName("server-" + format(socket) + "-writer");
             try {
-                while(isRunning) {
+                while (isRunning) {
                     final Row row = rowQueue.take();
-                    if( row.getLineNum() >= 0 ) {
+                    if (row.getLineNum() >= 0) {
                         write(dos, new GetDataResp(row.getLineNum(), row.getData()));
                     } else {
                         write(dos, new GetEofResp());
