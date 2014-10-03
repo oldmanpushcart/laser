@@ -68,7 +68,7 @@ public class LaserServer {
                     initClientHandler(serverSocket.accept());
                 }
             } catch (IOException ioe) {
-                log.warn("server[port={}] accept failed.", ioe);
+                log.warn("server[port={}] accept failed.", configer.getPort(), ioe);
             }
         });
 
