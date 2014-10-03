@@ -2,6 +2,7 @@ package com.github.ompc.laser.common;
 
 import com.github.ompc.laser.client.ClientConfiger;
 import com.github.ompc.laser.client.LaserClient;
+import com.github.ompc.laser.client.NioLaserClient;
 import com.github.ompc.laser.server.LaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
 import com.github.ompc.laser.server.datasource.DataSource;
@@ -78,7 +79,7 @@ public class LaserLauncher {
         final int worksNum = options.getClientWorkNumbers();
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
-        final ExecutorService executorService = Executors.newCachedThreadPool((r)->{
+        final ExecutorService executorService = Executors.newCachedThreadPool((r) -> {
             final Thread t = new Thread(r);
             t.setDaemon(true);
             return t;
@@ -93,7 +94,7 @@ public class LaserLauncher {
         }
 
         // 驱动干活
-        for( LaserClient client : clients ) {
+        for (LaserClient client : clients) {
             client.work();
         }
 
@@ -101,13 +102,70 @@ public class LaserLauncher {
         // 等待所有Client完成
         countDown.await();
         final long endTime = System.currentTimeMillis();
-        System.out.println("cost="+(endTime - startTime));
+        System.out.println("cost=" + (endTime - startTime));
 
         // registe shutdown
         getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 currentThread().setName("client-shutdown-hook");
-                for(LaserClient client : clients) {
+                for (LaserClient client : clients) {
+                    client.disconnect();
+                }
+                executorService.shutdown();
+            } catch (IOException e) {
+                // do nothing...
+            }
+        }));
+
+    }
+
+    /**
+     * 启动NIO客户端
+     * @param args
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static void startNioClient(String... args) throws IOException, InterruptedException {
+
+        final long startTime = System.currentTimeMillis();
+        final ClientConfiger configer = new ClientConfiger();
+        configer.setServerAddress(new InetSocketAddress(args[1], Integer.valueOf(args[2])));
+        configer.setDataFile(new File(args[3]));
+
+        final LaserOptions options = new LaserOptions(new File(args[4]));
+        final int worksNum = options.getClientWorkNumbers();
+
+        final CountDownLatch countDown = new CountDownLatch(worksNum);
+        final ExecutorService executorService = Executors.newCachedThreadPool((r) -> {
+            final Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+        });
+
+        // 建立链接
+        final Set<NioLaserClient> clients = new HashSet<>();
+        for (int i = 0; i < worksNum; i++) {
+            final NioLaserClient client = new NioLaserClient(countDown, executorService, configer, options);
+            client.connect();
+            clients.add(client);
+        }
+
+        // 驱动干活
+        for (NioLaserClient client : clients) {
+            client.work();
+        }
+
+
+        // 等待所有Client完成
+        countDown.await();
+        final long endTime = System.currentTimeMillis();
+        System.out.println("cost=" + (endTime - startTime));
+
+        // registe shutdown
+        getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                currentThread().setName("client-shutdown-hook");
+                for (NioLaserClient client : clients) {
                     client.disconnect();
                 }
                 executorService.shutdown();
@@ -124,6 +182,8 @@ public class LaserLauncher {
             startServer(args);
         } else if (args[0].equals("client")) {
             startClient(args);
+        } else if (args[0].equals("nioclient")) {
+            startNioClient(args);
         } else {
             throw new IllegalArgumentException("illegal args[0]=" + args[0]);
         }

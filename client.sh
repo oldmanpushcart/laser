@@ -9,5 +9,5 @@ java \
     -Xmx4G \
     -Xms4G \
     -Xmn2G \
-    -jar ./target/laser-jar-with-dependencies.jar 'client' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
+    -jar ./target/laser-jar-with-dependencies.jar 'nioclient' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
 
