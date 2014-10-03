@@ -10,9 +10,9 @@ typeset SERVER_PORT=${2}
 
 java \
     -XX:+UseBiasedLocking \
-    -Xmx8G \
-    -Xms8G \
-    -Xmn4G \
+    -Xmx4G \
+    -Xms4G \
+    -Xmn2G \
     -XX:+UseConcMarkSweepGC \
     -XX:+UseCMSCompactAtFullCollection \
     -XX:CMSMaxAbortablePrecleanTime=5000 \
