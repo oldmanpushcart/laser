@@ -258,7 +258,7 @@ public class NioLaserClient {
                                     state = DecodeState.READ_TYPE;
 
                                     // handler GetDataResp
-                                    executorService.execute(new GetDataRespHandler(new GetDataResp(lineNum, data)));
+//                                    executorService.execute(new GetDataRespHandler(new GetDataResp(lineNum, data)));
 
                                     break;
                                 case READ_GETEOF:
@@ -295,7 +295,6 @@ public class NioLaserClient {
      * @throws IOException
      */
     public void work() throws IOException {
-        executorService.execute(writer);
         executorService.execute(writer);
         executorService.execute(reader);
     }
