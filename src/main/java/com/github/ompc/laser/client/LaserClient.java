@@ -73,7 +73,9 @@ public class LaserClient {
             try {
                 while (isRunning) {
                     write(dos, new GetDataReq());
-                    dos.flush();
+                    if( options.isClientSendAutoFlush() ) {
+                        dos.flush();
+                    }
                 }
             } catch (IOException ioe) {
                 log.warn("{} write data failed.", format(socket), ioe);

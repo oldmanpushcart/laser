@@ -124,7 +124,9 @@ public class LaserServer {
                     final Row row = rowQueue.take();
                     if (row.getLineNum() >= 0) {
                         write(dos, new GetDataResp(row.getLineNum(), row.getData()));
-                        dos.flush();
+                        if( options.isServerSendAutoFlush() ) {
+                            dos.flush();
+                        }
                     } else {
                         write(dos, new GetEofResp());
                         dos.flush();
