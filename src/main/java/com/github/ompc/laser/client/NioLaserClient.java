@@ -298,9 +298,6 @@ public class NioLaserClient {
         executorService.execute(writer);
         executorService.execute(writer);
         executorService.execute(reader);
-        executorService.execute(reader);
-        executorService.execute(reader);
-        executorService.execute(reader);
     }
 
     /**
