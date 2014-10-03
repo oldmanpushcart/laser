@@ -10,8 +10,7 @@ typeset SERVER_PORT=${2}
 
 java \
     -XX:+UseBiasedLocking\
-    -Xmx4G \
-    -Xms4G \
-    -Xmn1G \
-    -XX:MaxTenuringThreshold=1 \
+    -Xmx8G \
+    -Xms8G \
+    -Xmn4G \
     -jar ./target/laser-jar-with-dependencies.jar 'server' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
