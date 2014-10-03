@@ -13,10 +13,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 
 import static com.github.ompc.laser.common.SocketUtils.*;
 import static java.lang.Thread.currentThread;
@@ -107,7 +104,7 @@ public class LaserServer {
                 options.getServerChildPerformancePreferences()[2]);
         socket.setTrafficClass(options.getServerChildTrafficClass());
 
-        final BlockingQueue<Row> rowQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
+        final ConcurrentLinkedQueue<Row> rowQueue = new ConcurrentLinkedQueue<>();
         final DataOutputStream dos = getDataOutputStream(socket.getOutputStream());
         final DataInputStream dis = new DataInputStream(socket.getInputStream());
 
@@ -122,7 +119,7 @@ public class LaserServer {
                     final Row row = dataSource.getRow();
 
                     if( !options.isServerMock() ) {
-                        rowQueue.put(row);
+                        rowQueue.offer(row);
                     }
 
                 }
@@ -130,8 +127,6 @@ public class LaserServer {
                 if( !socket.isClosed() ) {
                     log.warn("{} read data failed.", format(socket), ioe);
                 }
-            } catch (InterruptedException ie) {
-                log.warn("{} put row into queue failed.", format(socket), ie);
             }
         });
 
@@ -142,7 +137,10 @@ public class LaserServer {
                 while (isRunning) {
                     final Row row;
                     if( !options.isServerMock() ) {
-                        row = rowQueue.take();
+                        row = rowQueue.poll();
+                        if( null == row ) {
+                            continue;
+                        }
                     } else {
                         row = new Row(1000,"ABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFG".getBytes());
                     }
@@ -161,8 +159,6 @@ public class LaserServer {
                 if( !socket.isClosed() ) {
                     log.warn("{} read data failed.", format(socket), ioe);
                 }
-            } catch (InterruptedException ie) {
-                log.warn("{} put row into queue failed.", format(socket), ie);
             }
         });
     }
