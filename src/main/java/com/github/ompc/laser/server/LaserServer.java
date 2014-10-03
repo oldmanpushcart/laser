@@ -139,10 +139,11 @@ public class LaserServer {
                     if( !options.isServerMock() ) {
                         row = rowQueue.poll();
                         if( null == row ) {
-                            Thread.yield();
-                            Thread.yield();
-                            Thread.yield();
-                            Thread.yield();
+                            try {
+                                Thread.sleep(50);
+                            } catch (InterruptedException e) {
+                                //
+                            }
                             continue;
                         }
                     } else {
