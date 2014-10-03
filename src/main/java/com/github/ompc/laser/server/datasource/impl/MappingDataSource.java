@@ -161,6 +161,10 @@ public class MappingDataSource implements DataSource {
 
             }//if
 
+            if (isEof()) {
+                log.warn("DataSource(file:{}) arrive EOF, pos={};", dataFile, cursor);
+                return new Row(-1, new byte[0]);
+            }
 
             final byte b = mapBuffer.get();
 
