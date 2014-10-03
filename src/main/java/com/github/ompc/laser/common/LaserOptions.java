@@ -17,7 +17,7 @@ public class LaserOptions {
     private int clientSendBufferSize;
     private boolean clientTcpNoDelay;
     private int clientTrafficClass;
-    private int[] clientPerformancePreferences;
+    private int[] clientPerformancePreferences = new int[3];
     private int clientWorkNumbers;
 
     private int serverSocketTimeout;
@@ -26,7 +26,7 @@ public class LaserOptions {
     private int serverChildSendBufferSize;
     private boolean serverChildTcpNoDelay;
     private int serverChildTrafficClass;
-    private int[] serverChildPerformancePreferences;
+    private int[] serverChildPerformancePreferences = new int[3];
 
 
     public LaserOptions(final File propertiesFile) throws IOException {
