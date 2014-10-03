@@ -47,6 +47,10 @@ public class LaserClient {
      */
     public void connect() throws IOException {
         socket = new Socket();
+
+        // config the socket
+        socket.setTcpNoDelay(true);
+
         socket.connect(configer.getServerAddress());
         final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
         final DataInputStream dis = new DataInputStream(socket.getInputStream());

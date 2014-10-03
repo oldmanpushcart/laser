@@ -79,6 +79,9 @@ public class LaserServer {
      */
     private void initClientHandler(Socket socket) throws IOException {
 
+        // config socket
+        socket.setTcpNoDelay(true);
+
         final BlockingQueue<Row> rowQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
         final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
         final DataInputStream dis = new DataInputStream(socket.getInputStream());
@@ -109,6 +112,7 @@ public class LaserServer {
                     final Row row = rowQueue.take();
                     if (row.getLineNum() >= 0) {
                         write(dos, new GetDataResp(row.getLineNum(), row.getData()));
+                        dos.flush();
                     } else {
                         write(dos, new GetEofResp());
                         dos.flush();
