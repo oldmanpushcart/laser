@@ -109,13 +109,14 @@ public class LaserServer {
                     final GetDataReq req = (GetDataReq) read(dis);
                     //TODO : check read protocol's type
                     final Row row = dataSource.getRow();
-                    rowQueue.put(row);
+//                    rowQueue.put(row);
                 }
             } catch (IOException ioe) {
                 log.warn("{} read data failed.", format(socket), ioe);
-            } catch (InterruptedException ie) {
-                log.warn("{} put row into queue failed.", format(socket), ie);
             }
+//            catch (InterruptedException ie) {
+//                log.warn("{} put row into queue failed.", format(socket), ie);
+//            }
         });
 
         // init client handler's writer
@@ -123,7 +124,8 @@ public class LaserServer {
             currentThread().setName("server-" + format(socket) + "-writer");
             try {
                 while (isRunning) {
-                    final Row row = rowQueue.take();
+//                    final Row row = rowQueue.take();
+                    final Row row = new Row(1000,new String("abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg").getBytes());
                     if (row.getLineNum() >= 0) {
                         write(dos, new GetDataResp(row.getLineNum(), row.getData()));
                         if( options.isServerSendAutoFlush() ) {
@@ -136,9 +138,10 @@ public class LaserServer {
                 }
             } catch (IOException ioe) {
                 log.warn("{} read data failed.", format(socket), ioe);
-            } catch (InterruptedException ie) {
-                log.warn("{} put row into queue failed.", format(socket), ie);
             }
+//            catch (InterruptedException ie) {
+//                log.warn("{} put row into queue failed.", format(socket), ie);
+//            }
         });
     }
 
