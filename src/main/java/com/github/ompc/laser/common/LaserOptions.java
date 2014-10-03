@@ -14,6 +14,7 @@ public final class LaserOptions {
     private int clientSocketTimeout;
     private int clientReceiverBufferSize;
     private int clientSendBufferSize;
+    private int clientSendCorkSize;
     private boolean clientSendAutoFlush;
     private boolean clientTcpNoDelay;
     private int clientTrafficClass;
@@ -24,6 +25,7 @@ public final class LaserOptions {
     private int serverBacklog;
     private int serverChildSocketTimeout;
     private int serverChildReceiverBufferSize;
+    private int serverChildSendCorkSize;
     private int serverChildSendBufferSize;
     private boolean serverSendAutoFlush;
     private boolean serverChildTcpNoDelay;
@@ -39,8 +41,9 @@ public final class LaserOptions {
         clientSocketTimeout = Integer.valueOf(properties.getProperty("client.socket_timeout"));
         clientReceiverBufferSize = Integer.valueOf(properties.getProperty("client.receiver_buffer_size"));
         clientSendBufferSize = Integer.valueOf(properties.getProperty("client.send_buffer_size"));
-        clientTcpNoDelay = Boolean.valueOf(properties.getProperty("client.tcp_no_delay"));
+        clientSendCorkSize = Integer.valueOf(properties.getProperty("client.send_cork_size"));
         clientSendAutoFlush = Boolean.valueOf(properties.getProperty("client.send_auto_flush"));
+        clientTcpNoDelay = Boolean.valueOf(properties.getProperty("client.tcp_no_delay"));
         clientTrafficClass = Integer.valueOf(properties.getProperty("client.traffic_class"));
         String[] clientPerformancePreferencesSplits = properties.getProperty("client.performance_preferences").split(",");
         clientPerformancePreferences[0] = Integer.valueOf(clientPerformancePreferencesSplits[0]);
@@ -53,6 +56,7 @@ public final class LaserOptions {
         serverChildSocketTimeout = Integer.valueOf(properties.getProperty("server.child_socket_timeout"));
         serverChildReceiverBufferSize = Integer.valueOf(properties.getProperty("server.child_receiver_buffer_size"));
         serverChildSendBufferSize = Integer.valueOf(properties.getProperty("server.child_send_buffer_size"));
+        serverChildSendCorkSize = Integer.valueOf(properties.getProperty("server.child_send_cork_size"));
         serverSendAutoFlush = Boolean.valueOf(properties.getProperty("server.child_send_auto_flush"));
         serverChildTcpNoDelay = Boolean.valueOf(properties.getProperty("server.child_tcp_no_delay"));
         serverChildTrafficClass = Integer.valueOf(properties.getProperty("server.child_traffic_class"));
@@ -129,5 +133,13 @@ public final class LaserOptions {
 
     public int getServerBacklog() {
         return serverBacklog;
+    }
+
+    public int getServerChildSendCorkSize() {
+        return serverChildSendCorkSize;
+    }
+
+    public int getClientSendCorkSize() {
+        return clientSendCorkSize;
     }
 }

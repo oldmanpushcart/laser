@@ -9,9 +9,7 @@ import com.github.ompc.laser.common.networking.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -44,6 +42,19 @@ public class LaserClient {
     }
 
     /**
+     * 获取数据输出流
+     * @param os
+     * @return
+     */
+    private DataOutputStream getDataOutputStream(OutputStream os) {
+        if( options.getClientSendCorkSize() <= 0 ) {
+            return new DataOutputStream(os);
+        } else {
+            return new DataOutputStream(new BufferedOutputStream(os, options.getClientSendCorkSize()));
+        }
+    }
+
+    /**
      * 链接到网络
      *
      * @throws IOException
@@ -63,7 +74,7 @@ public class LaserClient {
         socket.setTrafficClass(options.getClientTrafficClass());
 
         socket.connect(configer.getServerAddress());
-        final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+        final DataOutputStream dos = getDataOutputStream(socket.getOutputStream());
         final DataInputStream dis = new DataInputStream(socket.getInputStream());
 
 

@@ -9,9 +9,7 @@ import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -78,6 +76,19 @@ public class LaserServer {
     }
 
     /**
+     * 获取数据输出流
+     * @param os
+     * @return
+     */
+    private DataOutputStream getDataOutputStream(OutputStream os) {
+        if( options.getServerChildSendCorkSize() <= 0 ) {
+            return new DataOutputStream(os);
+        } else {
+            return new DataOutputStream(new BufferedOutputStream(os, options.getServerChildSendCorkSize()));
+        }
+    }
+
+    /**
      * 初始化 client's socket 处理器
      *
      * @param socket
@@ -97,7 +108,7 @@ public class LaserServer {
         socket.setTrafficClass(options.getServerChildTrafficClass());
 
         final BlockingQueue<Row> rowQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
-        final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+        final DataOutputStream dos = getDataOutputStream(socket.getOutputStream());
         final DataInputStream dis = new DataInputStream(socket.getInputStream());
 
         log.info("{} was connected.", format(socket));
