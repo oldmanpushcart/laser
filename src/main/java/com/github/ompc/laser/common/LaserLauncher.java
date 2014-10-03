@@ -37,6 +37,8 @@ public class LaserLauncher {
         configer.setPort(Integer.valueOf(args[2]));
 
         final DataSource dataSource = new BlockDataSource(configer.getDataFile());
+        dataSource.init();
+
         final CountDownLatch countDown = new CountDownLatch(1);
         final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -45,8 +47,9 @@ public class LaserLauncher {
 
         // registe shutdown
         getRuntime().addShutdownHook(new Thread(() -> {
+            currentThread().setName("server-shutdown-hook");
             try {
-                currentThread().setName("server-shutdown-hook");
+                dataSource.destroy();
                 server.shutdown();
             } catch (IOException e) {
                 // do nothing...
