@@ -14,9 +14,9 @@ java \
     -Xms4G \
     -Xmn2G \
     -XX:+UseConcMarkSweepGC \
-    -XX:+UseCMSCompactAtFullCollection \
     -XX:CMSMaxAbortablePrecleanTime=5000 \
     -XX:+CMSClassUnloadingEnabled \
     -XX:CMSInitiatingOccupancyFraction=80 \
     -XX:+UseCMSInitiatingOccupancyOnly \
+    -XX:ParallelGCThreads=12 \
     -jar ./target/laser-jar-with-dependencies.jar 'server' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
