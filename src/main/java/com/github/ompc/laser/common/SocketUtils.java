@@ -4,6 +4,8 @@ import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
 import com.github.ompc.laser.common.networking.Protocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -17,6 +19,8 @@ import static com.github.ompc.laser.common.LaserConstant.*;
  * Created by vlinux on 14-10-3.
  */
 public class SocketUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(SocketUtils.class);
 
     /**
      * 格式化链接输出
@@ -56,9 +60,10 @@ public class SocketUtils {
                 resp.setLineNum(dis.readInt());
                 final int len = dis.readInt();
 
-//                while (dis.available() >= len) {
-//                    // TODO : spin wait for timeout
-//                }
+                while (dis.available() >= len) {
+                    // TODO : spin wait for timeout
+                    log.info("spin for read, available={};len={}",dis.available(), len);
+                }
 
                 final byte[] data = new byte[len];
                 dis.read(data);

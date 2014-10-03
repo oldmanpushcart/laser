@@ -112,6 +112,7 @@ public class LaserServer {
                     } else {
                         write(dos, new GetEofResp());
                     }
+                    dos.flush();
                 }
             } catch (IOException ioe) {
                 log.warn("{} read data failed.", format(socket), ioe);
