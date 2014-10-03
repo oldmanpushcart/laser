@@ -42,7 +42,7 @@ public class BlockDataSource implements DataSource {
     public Row getRow() throws IOException {
         final String line = reader.readLine();
         if (null == line) {
-            throw new EOFException();
+            return new Row(-1,new byte[0]);
         }
         return new Row(lineCounter.getAndIncrement(), line.getBytes());
     }
