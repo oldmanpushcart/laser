@@ -53,7 +53,7 @@ public class LaserLauncher {
             try {
                 dataSource.destroy();
                 server.shutdown();
-                executorService.shutdownNow();
+                executorService.shutdown();
             } catch (IOException e) {
                 // do nothing...
             }
@@ -104,7 +104,7 @@ public class LaserLauncher {
                 for(LaserClient client : clients) {
                     client.disconnect();
                 }
-                executorService.shutdownNow();
+                executorService.shutdown();
             } catch (IOException e) {
                 // do nothing...
             }
