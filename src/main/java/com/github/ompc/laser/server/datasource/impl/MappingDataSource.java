@@ -81,7 +81,14 @@ public class MappingDataSource implements DataSource {
             final ByteBuffer dataBuffer = ByteBuffer.allocate(1024);
             final long fileSize = fileChannel.size();
             while (pos < fileSize) {
+
+                // mapping
+                final long loadStartTime = System.currentTimeMillis();
                 final MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, pos, fixBufferSize(pos, fileSize)).load();
+                final long loadEndTime = System.currentTimeMillis();
+                log.info("DataSource(file:{}) loading..., pos={},size={},cost={}",
+                        new Object[]{dataFile, pos, buffer.capacity(), (loadEndTime - loadStartTime)});
+
                 DecodeLineState state = DecodeLineState.READ_D;
                 while (buffer.hasRemaining()) {
                     switch (state) {
