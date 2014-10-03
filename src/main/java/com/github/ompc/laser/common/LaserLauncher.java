@@ -10,6 +10,8 @@ import com.github.ompc.laser.server.datasource.impl.BlockDataSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,12 +72,28 @@ public class LaserLauncher {
         final CountDownLatch countDown = new CountDownLatch(worksNum);
         final ExecutorService executorService = Executors.newCachedThreadPool();
 
+        final Set<LaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
             final LaserClient client = new LaserClient(countDown, executorService, configer);
             client.connect();
+            clients.add(client);
         }
 
+
+
         countDown.await();
+
+        // registe shutdown
+        getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                currentThread().setName("client-shutdown-hook");
+                for(LaserClient client : clients) {
+                    client.disconnect();
+                }
+            } catch (IOException e) {
+                // do nothing...
+            }
+        }));
 
     }
 
