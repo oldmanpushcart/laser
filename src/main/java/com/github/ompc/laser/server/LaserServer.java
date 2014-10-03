@@ -120,7 +120,11 @@ public class LaserServer {
                     final GetDataReq req = (GetDataReq) read(dis);
                     //TODO : check read protocol's type
                     final Row row = dataSource.getRow();
-                    rowQueue.put(row);
+
+                    if( !options.isServerMock() ) {
+                        rowQueue.put(row);
+                    }
+
                 }
             } catch (IOException ioe) {
                 if( !socket.isClosed() ) {
@@ -136,7 +140,13 @@ public class LaserServer {
             currentThread().setName("server-" + format(socket) + "-writer");
             try {
                 while (isRunning) {
-                    final Row row = rowQueue.take();
+                    final Row row;
+                    if( !options.isServerMock() ) {
+                        row = rowQueue.take();
+                    } else {
+                        row = new Row(1000,"ABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFG".getBytes());
+                    }
+
                     if (row.getLineNum() >= 0) {
                         write(dos, new GetDataResp(row.getLineNum(), row.getData()));
                         if( options.isServerSendAutoFlush() ) {
