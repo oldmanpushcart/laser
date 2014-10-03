@@ -6,6 +6,8 @@ import com.github.ompc.laser.server.LaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.impl.BlockDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +26,8 @@ import static java.lang.Thread.currentThread;
  * Created by vlinux on 14-10-3.
  */
 public class LaserLauncher {
+
+    private static final Logger log = LoggerFactory.getLogger(LaserLauncher.class);
 
     /**
      * 启动服务器
@@ -51,6 +55,7 @@ public class LaserLauncher {
             try {
                 dataSource.destroy();
                 server.shutdown();
+                executorService.shutdownNow();
             } catch (IOException e) {
                 // do nothing...
             }
@@ -68,13 +73,18 @@ public class LaserLauncher {
 
         final long startTime = System.currentTimeMillis();
         final int worksNum = Runtime.getRuntime().availableProcessors();
+        log.info("client's worksNum={}",worksNum);
 
         final ClientConfiger configer = new ClientConfiger();
         configer.setServerAddress(new InetSocketAddress(args[1], Integer.valueOf(args[2])));
         configer.setDataFile(new File(args[3]));
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
-        final ExecutorService executorService = Executors.newCachedThreadPool();
+        final ExecutorService executorService = Executors.newCachedThreadPool((r)->{
+            final Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+        });
 
         final Set<LaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
@@ -96,6 +106,7 @@ public class LaserLauncher {
                 for(LaserClient client : clients) {
                     client.disconnect();
                 }
+                executorService.shutdownNow();
             } catch (IOException e) {
                 // do nothing...
             }

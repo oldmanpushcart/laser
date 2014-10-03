@@ -67,14 +67,19 @@ public class SocketUtils {
 
                 final byte[] data = new byte[len];
                 dis.read(data);
+                resp.setData(data);
+
                 p = resp;
+//                log.debug("receive an RESP-GETDATA, lenNum={};len={}",resp.getLineNum(),resp.getData().length);
                 break;
             case PRO_RESP_GETEOF:
                 p = new GetEofResp();
                 break;
+            default:
+                throw new IOException("illegal type="+type);
         }
 
-        return null;
+        return p;
 
     }
 
