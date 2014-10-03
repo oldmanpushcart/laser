@@ -51,7 +51,7 @@ public class LaserOptions {
         serverChildSocketTimeout = Integer.valueOf(properties.getProperty("server.child_socket_timeout"));
         serverChildReceiverBufferSize = Integer.valueOf(properties.getProperty("server.child_receiver_buffer_size"));
         serverChildSendBufferSize = Integer.valueOf(properties.getProperty("server.child_send_buffer_size"));
-        serverSendAutoFlush = Boolean.valueOf(properties.getProperty("server.send_auto_flush"));
+        serverSendAutoFlush = Boolean.valueOf(properties.getProperty("server.child_send_auto_flush"));
         serverChildTcpNoDelay = Boolean.valueOf(properties.getProperty("server.child_tcp_no_delay"));
         serverChildTrafficClass = Integer.valueOf(properties.getProperty("server.child_traffic_class"));
         String[] serverChildPerformancePreferencesSplits = properties.getProperty("server.child_performance_preferences").split(",");
