@@ -296,6 +296,10 @@ public class NioLaserClient {
      */
     public void work() throws IOException {
         executorService.execute(writer);
+        executorService.execute(writer);
+        executorService.execute(reader);
+        executorService.execute(reader);
+        executorService.execute(reader);
         executorService.execute(reader);
     }
 
