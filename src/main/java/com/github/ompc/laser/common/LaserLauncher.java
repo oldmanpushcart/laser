@@ -66,6 +66,7 @@ public class LaserLauncher {
      */
     private static void startClient(String... args) throws IOException, InterruptedException {
 
+        final long startTime = System.currentTimeMillis();
         final int worksNum = Runtime.getRuntime().availableProcessors();
 
         final ClientConfiger configer = new ClientConfiger();
@@ -85,6 +86,8 @@ public class LaserLauncher {
 
 
         countDown.await();
+        final long endTime = System.currentTimeMillis();
+        System.out.println("cost="+(endTime - startTime));
 
         // registe shutdown
         getRuntime().addShutdownHook(new Thread(() -> {
