@@ -81,8 +81,8 @@ public class LaserServer {
 
         // config socket
         socket.setTcpNoDelay(true);
-        socket.setReceiveBufferSize(1460*1024);
-        socket.setSendBufferSize(1460*1024);
+        socket.setReceiveBufferSize(64);
+        socket.setSendBufferSize(1460*64);
 
         final BlockingQueue<Row> rowQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
         final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
