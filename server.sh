@@ -12,6 +12,6 @@ java \
     -XX:+UseBiasedLocking\
     -Xmx4G \
     -Xms4G \
-    -Xmn1G \
-    -XX:MaxTenuringThreshold=3 \
+    -Xmn2G \
+    -XX:MaxTenuringThreshold=2 \
     -jar ./target/laser-jar-with-dependencies.jar 'server' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
