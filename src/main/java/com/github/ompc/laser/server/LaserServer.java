@@ -1,6 +1,7 @@
 package com.github.ompc.laser.server;
 
 import com.github.ompc.laser.common.LaserOptions;
+import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
@@ -18,6 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.github.ompc.laser.common.LaserUtils.process;
 import static com.github.ompc.laser.common.SocketUtils.*;
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.currentThread;
@@ -146,7 +148,7 @@ public class LaserServer {
                     while( reqCounter.get() > 0 ) {
                         final Row row = dataSource.getRow();
                         if (row.getLineNum() >= 0) {
-                            write(dos, new GetDataResp(row.getLineNum(), row.getData()));
+                            write(dos, new GetDataResp(row.getLineNum(), process(row.getData())));
                             if( options.isServerSendAutoFlush() ) {
                                 dos.flush();
                             }
