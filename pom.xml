@@ -15,7 +15,7 @@
     </properties>
 
     <build>
-        <finalName>carrying-client</finalName>
+        <finalName>laser</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
