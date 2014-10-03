@@ -143,7 +143,7 @@ public class NioLaserClient {
             currentThread().setName("client-" + format(socketChannel.socket()) + "-writer");
             try (final Selector selector = Selector.open()) {
 
-                final ByteBuffer buffer = ByteBuffer.allocate(options.getClientSendBufferSize());
+                final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
                 while (isRunning) {
 
                     final GetDataReq req = new GetDataReq();
@@ -198,7 +198,7 @@ public class NioLaserClient {
         public void run() {
 
             currentThread().setName("client-" + format(socketChannel.socket()) + "-reader");
-            final ByteBuffer buffer = ByteBuffer.allocate(options.getClientReceiverBufferSize());
+            final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
             try (final Selector selector = Selector.open()) {
 
                 // decode
