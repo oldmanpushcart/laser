@@ -55,12 +55,9 @@ public abstract class AbstractDataSourceTestCase {
             Assert.assertTrue(row.getData().length > 0);
         }
 
-        // 第1001行到达文件末尾需要抛出EOF
-        try {
-            dataSource.getRow();
-        } catch (Throwable t) {
-            Assert.assertTrue(t instanceof EOFException);
-        }
+        // 第1001行到达文件末尾需要Row的行号为-1
+        final Row row = dataSource.getRow();
+        Assert.assertTrue(row.getLineNum()<0);
 
     }
 
@@ -84,16 +81,15 @@ public abstract class AbstractDataSourceTestCase {
                     forks[i] = executors.submit(() -> {
                         int counter = 0;
                         while (true) {
-                            try {
-                                final Row row = dataSource.getRow();
-                                if (null != row
-                                        && row.getLineNum() >= 0
-                                        && row.getData().length > 0
-                                        && !unique.contains(row.getLineNum())) {
-                                    counter++;
-                                    unique.add(row.getLineNum());
-                                }
-                            } catch (EOFException eof) {
+                            final Row row = dataSource.getRow();
+                            if (row.getLineNum() >= 0
+                                    && row.getData().length > 0
+                                    && !unique.contains(row.getLineNum())) {
+                                counter++;
+                                unique.add(row.getLineNum());
+                            }//if
+
+                            if( row.getLineNum() < 0 ) {
                                 break;
                             }
                         }

@@ -137,10 +137,10 @@ public class LaserServer {
                 while (isRunning) {
                     final Row row;
                     if( !options.isServerMock() ) {
-                        if( null == rowQueue.peek() ) {
+                        row = rowQueue.poll();
+                        if( null == row ) {
                             continue;
                         }
-                        row = rowQueue.poll();
                     } else {
                         row = new Row(1000,"ABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFG".getBytes());
                     }
