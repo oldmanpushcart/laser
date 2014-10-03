@@ -42,7 +42,7 @@ public class SocketUtils {
         final int type = dis.readInt();
 
         // check MC
-        if ((type & PRO_MC) != PRO_MC) {
+        if ((type & PRO_MC_MASK) >> 16 != PRO_MC) {
             throw new IOException("illegal type=" + type);
         }
 
