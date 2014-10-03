@@ -84,6 +84,7 @@ public class LaserLauncher {
             return t;
         });
 
+        // 建立链接
         final Set<LaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
             final LaserClient client = new LaserClient(countDown, executorService, configer, options);
@@ -91,8 +92,13 @@ public class LaserLauncher {
             clients.add(client);
         }
 
+        // 驱动干活
+        for( LaserClient client : clients ) {
+            client.work();
+        }
 
 
+        // 等待所有Client完成
         countDown.await();
         final long endTime = System.currentTimeMillis();
         System.out.println("cost="+(endTime - startTime));

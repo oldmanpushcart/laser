@@ -74,9 +74,16 @@ public class LaserClient {
         socket.setTrafficClass(options.getClientTrafficClass());
 
         socket.connect(configer.getServerAddress());
+        log.info("{} connect successed.", format(socket));
+    }
+
+    /**
+     * 开始干活
+     * @throws IOException
+     */
+    public void work() throws IOException {
         final DataOutputStream dos = getDataOutputStream(socket.getOutputStream());
         final DataInputStream dis = new DataInputStream(socket.getInputStream());
-
 
         // init writer
         executorService.execute(() -> {
@@ -117,8 +124,6 @@ public class LaserClient {
                 }
             }
         });
-
-        log.info("{} connect successed.", format(socket));
     }
 
     /**
