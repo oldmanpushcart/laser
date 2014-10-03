@@ -23,7 +23,7 @@ public class MappingDataSource implements DataSource {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final static int BUFFER_SIZE = 128 * 1024 * 1024;//256M,4K倍数
+    private final static int BUFFER_SIZE = 512 * 1024 * 1024;//256M,4K倍数
 
     private final File dataFile;
     private final ConcurrentLinkedQueue<Row> rowQueue = new ConcurrentLinkedQueue<>();
