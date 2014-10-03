@@ -6,8 +6,6 @@ import com.github.ompc.laser.server.LaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.impl.BlockDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,8 +25,6 @@ import static java.lang.Thread.currentThread;
  */
 public class LaserLauncher {
 
-    private static final Logger log = LoggerFactory.getLogger(LaserLauncher.class);
-
     /**
      * 启动服务器
      *
@@ -40,13 +36,15 @@ public class LaserLauncher {
         configer.setDataFile(new File(args[1]));
         configer.setPort(Integer.valueOf(args[2]));
 
+        final LaserOptions options = new LaserOptions(new File(args[3]));
+
         final DataSource dataSource = new BlockDataSource(configer.getDataFile());
         dataSource.init();
 
         final CountDownLatch countDown = new CountDownLatch(1);
         final ExecutorService executorService = Executors.newCachedThreadPool();
 
-        final LaserServer server = new LaserServer(dataSource, countDown, executorService, configer);
+        final LaserServer server = new LaserServer(dataSource, countDown, executorService, configer, options);
         server.startup();
 
         // registe shutdown
@@ -72,12 +70,12 @@ public class LaserLauncher {
     private static void startClient(String... args) throws IOException, InterruptedException {
 
         final long startTime = System.currentTimeMillis();
-        final int worksNum = Runtime.getRuntime().availableProcessors();
-        log.info("client's worksNum={}",worksNum);
-
         final ClientConfiger configer = new ClientConfiger();
         configer.setServerAddress(new InetSocketAddress(args[1], Integer.valueOf(args[2])));
         configer.setDataFile(new File(args[3]));
+
+        final LaserOptions options = new LaserOptions(new File(args[4]));
+        final int worksNum = options.getClientWorkNumbers();
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
         final ExecutorService executorService = Executors.newCachedThreadPool((r)->{
@@ -88,7 +86,7 @@ public class LaserLauncher {
 
         final Set<LaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
-            final LaserClient client = new LaserClient(countDown, executorService, configer);
+            final LaserClient client = new LaserClient(countDown, executorService, configer, options);
             client.connect();
             clients.add(client);
         }

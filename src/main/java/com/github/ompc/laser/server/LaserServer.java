@@ -1,5 +1,6 @@
 package com.github.ompc.laser.server;
 
+import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
@@ -35,17 +36,19 @@ public class LaserServer {
     private final CountDownLatch countDown;
     private final ExecutorService executorService;
     private final ServerConfiger configer;
+    private final LaserOptions options;
 
     private ServerSocket serverSocket;
 
     private volatile boolean isRunning = true;
 
 
-    public LaserServer(DataSource dataSource, CountDownLatch countDown, ExecutorService executorService, ServerConfiger configer) throws IOException {
+    public LaserServer(DataSource dataSource, CountDownLatch countDown, ExecutorService executorService, ServerConfiger configer, LaserOptions options) throws IOException {
         this.countDown = countDown;
         this.dataSource = dataSource;
         this.executorService = executorService;
         this.configer = configer;
+        this.options = options;
     }
 
     /**
@@ -55,6 +58,7 @@ public class LaserServer {
      */
     public void startup() throws IOException {
         serverSocket = new ServerSocket(configer.getPort());
+        serverSocket.setSoTimeout(options.getServerSocketTimeout());
 
         // init accept thread
         executorService.execute(() -> {
@@ -80,9 +84,15 @@ public class LaserServer {
     private void initClientHandler(Socket socket) throws IOException {
 
         // config socket
-        socket.setTcpNoDelay(true);
-        socket.setReceiveBufferSize(64);
-        socket.setSendBufferSize(1460*64);
+        socket.setTcpNoDelay(options.isServerChildTcpNoDelay());
+        socket.setReceiveBufferSize(options.getServerChildReceiverBufferSize());
+        socket.setSendBufferSize(options.getServerChildSendBufferSize());
+        socket.setSoTimeout(options.getServerSocketTimeout());
+        socket.setPerformancePreferences(
+                options.getServerChildPerformancePreferences()[0],
+                options.getServerChildPerformancePreferences()[1],
+                options.getServerChildPerformancePreferences()[2]);
+        socket.setTrafficClass(options.getServerChildTrafficClass());
 
         final BlockingQueue<Row> rowQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
         final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());

@@ -1,5 +1,6 @@
 package com.github.ompc.laser.client;
 
+import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.SocketUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
@@ -29,15 +30,17 @@ public class LaserClient {
     private final CountDownLatch countDown;
     private final ExecutorService executorService;
     private final ClientConfiger configer;
+    private final LaserOptions options;
 
 
     private Socket socket;
     private volatile boolean isRunning = true;
 
-    public LaserClient(CountDownLatch countDown, ExecutorService executorService, ClientConfiger configer) throws IOException {
+    public LaserClient(CountDownLatch countDown, ExecutorService executorService, ClientConfiger configer, LaserOptions options) throws IOException {
         this.countDown = countDown;
         this.executorService = executorService;
         this.configer = configer;
+        this.options = options;
     }
 
     /**
@@ -49,9 +52,15 @@ public class LaserClient {
         socket = new Socket();
 
         // config the socket
-        socket.setTcpNoDelay(true);
-        socket.setReceiveBufferSize(1460*1024);
-        socket.setSendBufferSize(64);
+        socket.setTcpNoDelay(options.isClientTcpNoDelay());
+        socket.setReceiveBufferSize(options.getClientReceiverBufferSize());
+        socket.setSendBufferSize(options.getClientSendBufferSize());
+        socket.setSoTimeout(options.getClientSocketTimeout());
+        socket.setPerformancePreferences(
+                options.getClientPerformancePreferences()[0],
+                options.getClientPerformancePreferences()[1],
+                options.getClientPerformancePreferences()[2]);
+        socket.setTrafficClass(options.getClientTrafficClass());
 
         socket.connect(configer.getServerAddress());
         final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
