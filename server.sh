@@ -13,4 +13,4 @@ java \
     -Xmx4G \
     -Xms4G \
     -Xmn2G \
-    -jar ./laser/target/laser-jar-with-dependencies.jar 'server' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
+    -jar ./target/laser-jar-with-dependencies.jar 'server' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
