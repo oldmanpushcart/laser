@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -106,10 +107,11 @@ public class LaserServer {
             currentThread().setName("server-" + format(socket) + "-writer");
             try {
                 while (isRunning) {
-                    final Row row = rowQueue.take();
-                    if (row.getLineNum() >= 0) {
+                    try {
+                        final Row row = rowQueue.take();
                         write(dos, new GetDataResp(row.getLineNum(), row.getData()));
-                    } else {
+                    } catch(EOFException eofe) {
+                        log.info("{} read arrive EOF.", format(socket));
                         write(dos, new GetEofResp());
                     }
                 }
