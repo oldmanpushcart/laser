@@ -47,6 +47,8 @@ public class MappingDataSource implements DataSource {
 
     private Runnable bufferLoader = () -> {
 
+        log.info("{} was started.", Thread.currentThread().getName());
+
         while (true) {
 
             if (isEof()) {
@@ -66,7 +68,7 @@ public class MappingDataSource implements DataSource {
             try {
                 nextBuffer = switchBuffer(nextCursor, nextFixBufferSize);
             } catch (IOException e) {
-                log.error("mapping buffer failed. nextCursor={};nextFixBufferSize={};",
+                log.warn("mapping buffer failed. nextCursor={};nextFixBufferSize={};",
                         new Object[]{nextCursor, nextFixBufferSize, e});
             }//try
 
@@ -132,8 +134,8 @@ public class MappingDataSource implements DataSource {
 
     @Override
     public synchronized Row getRow() throws IOException {
-        if( isEof() ) {
-            return new Row(-1,new byte[0]);
+        if (isEof()) {
+            return new Row(-1, new byte[0]);
         }
 
         int pos = 0;
@@ -144,12 +146,12 @@ public class MappingDataSource implements DataSource {
         WHILE:
         do {
 
-            if( ! mapBuffer.hasRemaining() ) {
+            if (!mapBuffer.hasRemaining()) {
 
                 cursor += mapBuffer.capacity();
-                if( isEof() ) {
+                if (isEof()) {
                     log.warn("DataSource(file:{}) arrive EOF, pos={};", dataFile, cursor);
-                    return new Row(-1,new byte[0]);
+                    return new Row(-1, new byte[0]);
                 }
 
                 mapBuffer = nextBuffer;
@@ -165,7 +167,7 @@ public class MappingDataSource implements DataSource {
             switch (checkpoint) {
 
                 case READ_R:
-                    if( b == '\r' ) {
+                    if (b == '\r') {
                         checkpoint = State.READ_N;
                     } else {
                         buf[pos++] = b;
@@ -173,19 +175,19 @@ public class MappingDataSource implements DataSource {
                     break;
 
                 case READ_N:
-                    if( b != '\n' ) {
+                    if (b != '\n') {
                         throw new IllegalStateException("read file failed. format was not end with \\r\\n each line.");
                     }
                     data.setData(new byte[pos]);
                     data.setLineNum(lineNum++);
-                    System.arraycopy(buf,0,data.getData(),0,pos);
+                    System.arraycopy(buf, 0, data.getData(), 0, pos);
                     break WHILE;
 
             }//switch
 
         } while (true);
 
-        if( checkpoint != State.READ_N ) {
+        if (checkpoint != State.READ_N) {
             throw new IllegalStateException("read file failed. format was not end with \\r\\n each line.");
         }
 
