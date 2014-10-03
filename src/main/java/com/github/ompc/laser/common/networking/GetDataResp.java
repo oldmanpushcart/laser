@@ -6,7 +6,7 @@ import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETDATA;
  * 应答报文
  * Created by vlinux on 14-9-29.
  */
-public class GetDataResp extends Protocol {
+public final class GetDataResp extends Protocol {
 
     /*
      * 行号

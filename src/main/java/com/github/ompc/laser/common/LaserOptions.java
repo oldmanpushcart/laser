@@ -9,7 +9,7 @@ import java.util.Properties;
  * laser's option config
  * Created by vlinux on 14-10-3.
  */
-public class LaserOptions {
+public final class LaserOptions {
 
     private int clientSocketTimeout;
     private int clientReceiverBufferSize;
