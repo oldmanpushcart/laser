@@ -123,7 +123,7 @@ public class LaserServer {
                     rowQueue.put(row);
                 }
             } catch (IOException ioe) {
-                if( socket.isConnected() ) {
+                if( !socket.isClosed() ) {
                     log.warn("{} read data failed.", format(socket), ioe);
                 }
             } catch (InterruptedException ie) {
@@ -148,7 +148,7 @@ public class LaserServer {
                     }
                 }
             } catch (IOException ioe) {
-                if( socket.isConnected() ) {
+                if( !socket.isClosed() ) {
                     log.warn("{} read data failed.", format(socket), ioe);
                 }
             } catch (InterruptedException ie) {
