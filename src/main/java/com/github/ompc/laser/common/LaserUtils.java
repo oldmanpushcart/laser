@@ -6,7 +6,7 @@ import static java.lang.System.arraycopy;
  * 业务工具类
  * Created by vlinux on 14-10-4.
  */
-public class LaserUtils {
+public final class LaserUtils {
 
     /**
      * 从size/3字符开始去掉size/3个字符，除法向下取整
