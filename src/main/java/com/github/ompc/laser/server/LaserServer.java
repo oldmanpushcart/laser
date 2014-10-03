@@ -13,7 +13,10 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.github.ompc.laser.common.SocketUtils.*;
 import static java.lang.Thread.MIN_PRIORITY;
@@ -38,6 +41,7 @@ public class LaserServer {
     private ServerSocket serverSocket;
 
     private volatile boolean isRunning = true;
+    private AtomicInteger reqCounter = new AtomicInteger(0);
 
 
     public LaserServer(DataSource dataSource, CountDownLatch countDown, ExecutorService executorService, ServerConfiger configer, LaserOptions options) throws IOException {
@@ -117,11 +121,8 @@ public class LaserServer {
                 while (isRunning) {
                     final GetDataReq req = (GetDataReq) read(dis);
                     //TODO : check read protocol's type
-                    final Row row = dataSource.getRow();
-
-                    if( !options.isServerMock() ) {
-                        rowQueue.offer(row);
-                    }
+//                    rowQueue.offer(dataSource.getRow());
+                    reqCounter.incrementAndGet();
 
                 }
             } catch (IOException ioe) {
@@ -137,26 +138,27 @@ public class LaserServer {
             currentThread().setPriority(MIN_PRIORITY);
             try {
                 while (isRunning) {
-                    final Row row;
-                    if( !options.isServerMock() ) {
-                        row = rowQueue.poll();
-                        if( null == row ) {
-                            Thread.yield();
-                            continue;
-                        }
-                    } else {
-                        row = new Row(1000,"ABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFGABCDEFG".getBytes());
+
+//                    final Row row = rowQueue.poll();
+//                    if( null == row ) {
+//                        Thread.yield();
+//                        continue;
+//                    }
+
+                    while( reqCounter.getAndDecrement() > 0 ) {
+                        final Row row = dataSource.getRow();
+                        if (row.getLineNum() >= 0) {
+                            write(dos, new GetDataResp(row.getLineNum(), row.getData()));
+                            if( options.isServerSendAutoFlush() ) {
+                                dos.flush();
+                            }
+                        } else {
+                            write(dos, new GetEofResp());
+                            dos.flush();
+                        }//if
                     }
 
-                    if (row.getLineNum() >= 0) {
-                        write(dos, new GetDataResp(row.getLineNum(), row.getData()));
-                        if( options.isServerSendAutoFlush() ) {
-                            dos.flush();
-                        }
-                    } else {
-                        write(dos, new GetEofResp());
-                        dos.flush();
-                    }
+
                 }
             } catch (IOException ioe) {
                 if( !socket.isClosed() ) {

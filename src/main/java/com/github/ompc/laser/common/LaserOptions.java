@@ -23,7 +23,6 @@ public final class LaserOptions {
 
     private int serverSocketTimeout;
     private int serverBacklog;
-    private boolean serverMock;
     private int serverChildSocketTimeout;
     private int serverChildReceiverBufferSize;
     private int serverChildSendCorkSize;
@@ -54,7 +53,6 @@ public final class LaserOptions {
 
         serverSocketTimeout = Integer.valueOf(properties.getProperty("server.socket_timeout"));
         serverBacklog = Integer.valueOf(properties.getProperty("server.backlog"));
-        serverMock = Boolean.valueOf(properties.getProperty("server.mock"));
         serverChildSocketTimeout = Integer.valueOf(properties.getProperty("server.child_socket_timeout"));
         serverChildReceiverBufferSize = Integer.valueOf(properties.getProperty("server.child_receiver_buffer_size"));
         serverChildSendBufferSize = Integer.valueOf(properties.getProperty("server.child_send_buffer_size"));
@@ -145,7 +143,4 @@ public final class LaserOptions {
         return clientSendCorkSize;
     }
 
-    public boolean isServerMock() {
-        return serverMock;
-    }
 }
