@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.util.concurrent.*;
 
 import static com.github.ompc.laser.common.SocketUtils.*;
+import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.currentThread;
 
 /**
@@ -133,17 +134,14 @@ public class LaserServer {
         // init client handler's writer
         executorService.execute(() -> {
             currentThread().setName("server-" + format(socket) + "-writer");
+            currentThread().setPriority(MIN_PRIORITY);
             try {
                 while (isRunning) {
                     final Row row;
                     if( !options.isServerMock() ) {
                         row = rowQueue.poll();
                         if( null == row ) {
-                            try {
-                                Thread.sleep(50);
-                            } catch (InterruptedException e) {
-                                //
-                            }
+                            Thread.yield();
                             continue;
                         }
                     } else {
