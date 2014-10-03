@@ -13,5 +13,5 @@ java \
     -Xmx4G \
     -Xms4G \
     -Xmn1G \
-    -XX:MaxTenuringThreshold=3
+    -XX:MaxTenuringThreshold=3 \
     -jar ./target/laser-jar-with-dependencies.jar 'server' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
