@@ -62,7 +62,7 @@ public class SocketUtils {
 
                 while (dis.available() < len) {
                     // TODO : spin wait for timeout
-                    log.info("spin for read, available={};len={}",dis.available(), len);
+//                    log.info("spin for read, available={};len={}",dis.available(), len);
                 }
 
                 final byte[] data = new byte[len];
