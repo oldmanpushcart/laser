@@ -89,7 +89,9 @@ public class LaserClient {
                     }
                 }
             } catch (IOException ioe) {
-                log.warn("{} write data failed.", format(socket), ioe);
+                if( socket.isConnected() ) {
+                    log.warn("{} write data failed.", format(socket), ioe);
+                }
             }
         });
 
@@ -110,7 +112,9 @@ public class LaserClient {
                     }
                 }
             } catch (IOException ioe) {
-                log.warn("{} read data failed.", format(socket), ioe);
+                if( socket.isConnected() ) {
+                    log.warn("{} read data failed.", format(socket), ioe);
+                }
             }
         });
 

@@ -123,7 +123,9 @@ public class LaserServer {
                     rowQueue.put(row);
                 }
             } catch (IOException ioe) {
-                log.warn("{} read data failed.", format(socket), ioe);
+                if( socket.isConnected() ) {
+                    log.warn("{} read data failed.", format(socket), ioe);
+                }
             } catch (InterruptedException ie) {
                 log.warn("{} put row into queue failed.", format(socket), ie);
             }
@@ -146,7 +148,9 @@ public class LaserServer {
                     }
                 }
             } catch (IOException ioe) {
-                log.warn("{} read data failed.", format(socket), ioe);
+                if( socket.isConnected() ) {
+                    log.warn("{} read data failed.", format(socket), ioe);
+                }
             } catch (InterruptedException ie) {
                 log.warn("{} put row into queue failed.", format(socket), ie);
             }
