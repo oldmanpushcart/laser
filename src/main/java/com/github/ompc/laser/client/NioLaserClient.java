@@ -126,8 +126,8 @@ public class NioLaserClient {
         public void run() {
 
             // TODO : put to file
-            log.info("{} receive data, lineNum={},len={}",
-                    new Object[]{format(socketChannel.socket()), resp.getLineNum(), resp.getData().length});
+//            log.info("{} receive data, lineNum={},len={}",
+//                    new Object[]{format(socketChannel.socket()), resp.getLineNum(), resp.getData().length});
 
         }
 
