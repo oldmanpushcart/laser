@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -57,8 +58,9 @@ public class LaserServer {
      * @throws IOException
      */
     public void startup() throws IOException {
-        serverSocket = new ServerSocket(configer.getPort());
+        serverSocket = new ServerSocket();
         serverSocket.setSoTimeout(options.getServerSocketTimeout());
+        serverSocket.bind(new InetSocketAddress(configer.getPort()),24);
 
         // init accept thread
         executorService.execute(() -> {
