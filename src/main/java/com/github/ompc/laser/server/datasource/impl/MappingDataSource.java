@@ -134,9 +134,11 @@ public class MappingDataSource implements DataSource {
 
             }//while
 
+            final long endTime = System.currentTimeMillis();
+            log.info("DataSource(file:{}) was inited, cost={}", dataFile, (endTime - startTime));
+
         }//try
-        final long endTime = System.currentTimeMillis();
-        log.info("DataSource(file:{}) was inited, cost={}", dataFile, (endTime - startTime));
+
 
     }
 
