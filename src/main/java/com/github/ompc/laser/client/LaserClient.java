@@ -50,6 +50,8 @@ public class LaserClient {
 
         // config the socket
         socket.setTcpNoDelay(true);
+        socket.setReceiveBufferSize(1460*1024);
+        socket.setSendBufferSize(1460*1024);
 
         socket.connect(configer.getServerAddress());
         final DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
