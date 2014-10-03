@@ -13,6 +13,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static java.lang.Runtime.getRuntime;
+
 /**
  * 内存映射数据源
  * Created by vlinux on 14-10-4.
@@ -134,11 +136,10 @@ public class MappingDataSource implements DataSource {
 
             }//while
 
-            final long endTime = System.currentTimeMillis();
-            log.info("DataSource(file:{}) was inited, cost={}", dataFile, (endTime - startTime));
-
         }//try
-
+        final long endTime = System.currentTimeMillis();
+        log.info("DataSource(file:{}) was inited, cost={}", dataFile, (endTime - startTime));
+        getRuntime().gc();
 
     }
 
