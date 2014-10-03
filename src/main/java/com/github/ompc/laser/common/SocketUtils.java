@@ -56,9 +56,9 @@ public class SocketUtils {
                 resp.setLineNum(dis.readInt());
                 final int len = dis.readInt();
 
-                while (dis.available() >= len) {
-                    // TODO : spin wait for timeout
-                }
+//                while (dis.available() >= len) {
+//                    // TODO : spin wait for timeout
+//                }
 
                 final byte[] data = new byte[len];
                 dis.read(data);
