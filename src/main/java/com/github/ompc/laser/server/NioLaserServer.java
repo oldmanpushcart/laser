@@ -150,7 +150,7 @@ public class NioLaserServer {
                     }//while:MAIN_LOOP
 
                 } catch (IOException ioe) {
-                    log.warn("{} read data failed.", format(socketChannel.socket()), ioe);
+                    log.info("{} was disconnect for read.", format(socketChannel.socket()));
                 }
 
             }
@@ -230,7 +230,7 @@ public class NioLaserServer {
                     }//while:MAIN_LOOP
 
                 } catch (IOException ioe) {
-                    log.warn("{} write data failed.", format(socketChannel.socket()), ioe);
+                    log.info("{} was disconnect for write.", format(socketChannel.socket()));
                 }
 
             }
