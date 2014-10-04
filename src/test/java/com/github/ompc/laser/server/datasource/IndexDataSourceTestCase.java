@@ -17,7 +17,7 @@ public class IndexDataSourceTestCase extends AbstractDataSourceTestCase {
     DataSource getDataSource(boolean reset) {
         if (reset) {
             return currentDataSource = new IndexDataSource(
-                    new File("./src/test/resources/data/data_10")
+                    new File("./src/test/resources/data/data_1000")
 //                    new File("/Users/vlinux/data/data")
             );
         } else {
