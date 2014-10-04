@@ -1,5 +1,6 @@
 package com.github.ompc.laser.server.datasource.impl;
 
+import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static com.github.ompc.laser.common.LaserUtils.unmap;
 import static java.lang.Runtime.getRuntime;
 
 /**
@@ -133,9 +135,12 @@ public class MappingDataSource implements DataSource {
                 }//while
 
                 pos += buffer.capacity();
+                unmap(buffer);
                 getRuntime().gc();
 
             }//while
+
+
 
         }//try
         final long endTime = System.currentTimeMillis();
