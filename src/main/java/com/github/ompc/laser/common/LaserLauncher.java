@@ -7,6 +7,7 @@ import com.github.ompc.laser.server.LaserServer;
 import com.github.ompc.laser.server.NioLaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
 import com.github.ompc.laser.server.datasource.DataSource;
+import com.github.ompc.laser.server.datasource.impl.BlockDataSource;
 import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
 
 import java.io.File;
@@ -191,7 +192,9 @@ public class LaserLauncher {
 
         final LaserOptions options = new LaserOptions(new File(args[3]));
 
-        final DataSource dataSource = new MappingDataSource(configer.getDataFile());
+        final DataSource dataSource
+                // = new MappingDataSource(configer.getDataFile());
+                = new BlockDataSource(configer.getDataFile());
         dataSource.init();
 
         final CountDownLatch countDown = new CountDownLatch(1);//read&write
