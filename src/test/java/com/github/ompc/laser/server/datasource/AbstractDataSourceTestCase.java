@@ -49,7 +49,7 @@ public abstract class AbstractDataSourceTestCase {
 
         final DataSource dataSource = getDataSource(false);
         // 头1000行正常获取
-        for (int index = 0; index < 1000; index++) {
+        for (int index = 0; index < 10; index++) {
             final Row row = dataSource.getRow();
             Assert.assertEquals(row.getLineNum(), index);
             Assert.assertTrue(row.getData().length > 0);
@@ -104,7 +104,7 @@ public abstract class AbstractDataSourceTestCase {
                 return counter;
 
             });
-            Assert.assertEquals(resultFuture.get().intValue(), 1000);
+            Assert.assertEquals(resultFuture.get().intValue(), 10);
         } finally {
             executors.shutdown();
         }

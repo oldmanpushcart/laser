@@ -20,6 +20,10 @@ public class Test {
         System.out.println( buffer.limit() );
 
         buffer.getInt();
+
+        System.out.println( buffer.position() );
+        System.out.println( buffer.position() );
+
         buffer.compact();
         System.out.println( buffer.remaining() );
 
