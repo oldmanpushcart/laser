@@ -247,13 +247,7 @@ public class NioLaserClient {
 
                                         // handler GetDataResp
                                         final Row row = new Row(lineNum, data);
-                                        executorService.execute(()->{
-                                            try {
-                                                dataPersistence.putRow(row);
-                                            } catch (IOException e) {
-                                                log.warn("put row failed.", e);
-                                            }
-                                        });
+                                        dataPersistence.putRow(row);
 
 
                                         break;
