@@ -225,7 +225,7 @@ public class NioLaserClient {
                                 hasMore = false;
                                 switch (state) {
                                     case READ_TYPE:
-                                        if (buffer.limit() < Integer.BYTES) {
+                                        if (buffer.remaining() < Integer.BYTES) {
                                             break;
                                         }
                                         type = buffer.getInt();
@@ -238,19 +238,19 @@ public class NioLaserClient {
                                             throw new IOException("decode failed, illegal type=" + type);
                                         }
                                     case READ_GETDATA_LINENUM:
-                                        if (buffer.limit() < Integer.BYTES) {
+                                        if (buffer.remaining() < Integer.BYTES) {
                                             break;
                                         }
                                         lineNum = buffer.getInt();
                                         state = DecodeState.READ_GETDATA_LEN;
                                     case READ_GETDATA_LEN:
-                                        if (buffer.limit() < Integer.BYTES) {
+                                        if (buffer.remaining() < Integer.BYTES) {
                                             break;
                                         }
                                         len = buffer.getInt();
                                         state = DecodeState.READ_GETDATA_DATA;
                                     case READ_GETDATA_DATA:
-                                        if (buffer.limit() < len) {
+                                        if (buffer.remaining() < len) {
                                             break;
                                         }
                                         final byte[] data = new byte[len];
