@@ -1,6 +1,7 @@
 package com.github.ompc.laser.client;
 
 import com.github.ompc.laser.common.LaserOptions;
+import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.Row;
@@ -20,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 
 import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETDATA;
 import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETEOF;
+import static com.github.ompc.laser.common.LaserUtils.reverse;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
 import static java.nio.channels.SelectionKey.*;
@@ -238,6 +240,7 @@ public class NioLaserClient {
                                         }
                                         final byte[] data = new byte[len];
                                         buffer.get(data);
+                                        reverse(data);
 
                                         state = DecodeState.READ_TYPE;
                                         hasMore = true;

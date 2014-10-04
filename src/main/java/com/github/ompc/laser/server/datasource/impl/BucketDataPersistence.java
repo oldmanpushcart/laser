@@ -24,7 +24,7 @@ import static com.github.ompc.laser.common.LaserUtils.unmap;
  */
 public class BucketDataPersistence implements DataPersistence {
 
-    private final static int BUCKET_ROWS_SIZE = 1024 * 128;//每个数据桶大小
+    private final static int BUCKET_ROWS_SIZE = 1024 * 512;//每个数据桶大小
     private final static int BUCKET_SIZE = 1024;//桶总数
     private final static byte[] ENDS = new byte[]{'\r','\n'};
 

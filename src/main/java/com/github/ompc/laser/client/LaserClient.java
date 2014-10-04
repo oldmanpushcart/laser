@@ -1,6 +1,7 @@
 package com.github.ompc.laser.client;
 
 import com.github.ompc.laser.common.LaserOptions;
+import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.SocketUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
@@ -16,6 +17,7 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
+import static com.github.ompc.laser.common.LaserUtils.reverse;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static com.github.ompc.laser.common.SocketUtils.write;
 
@@ -119,7 +121,7 @@ public class LaserClient {
                     } else if (p instanceof GetDataResp) {
                         // TODO : write to ringbuffer
                         final GetDataResp resp = (GetDataResp)p;
-                        dataPersistence.putRow(new Row(resp.getLineNum(), resp.getData()));
+                        dataPersistence.putRow(new Row(resp.getLineNum(), reverse(resp.getData())));
                     } else {
                         // can't happen
                     }
