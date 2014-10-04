@@ -74,7 +74,7 @@ public class IndexDataSource implements DataSource {
 
         int lineCounter = 0;//行计数器
 
-        try (final FileChannel fileChannel = new RandomAccessFile(dataFile, "rw").getChannel()) {
+        try (final FileChannel fileChannel = new RandomAccessFile(dataFile, "r").getChannel()) {
 
             int currentBufferIdx = 0;//当前缓存IDX,在切换buffer的时候++
             int currentBufferPos = 0;//当前缓存POS,在切换buffer的时候清0
