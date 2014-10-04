@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -169,6 +170,8 @@ public class NioLaserClient {
 
                 }
 
+            } catch(CancelledKeyException cke){
+                // ingore...
             } catch (IOException ioe) {
                 if (!socketChannel.socket().isClosed()) {
                     log.warn("{} write failed.", format(socketChannel.socket()), ioe);
