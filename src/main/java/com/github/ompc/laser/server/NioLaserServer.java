@@ -171,7 +171,9 @@ public class NioLaserServer {
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
                     while (isRunning) {
 
-                        while( buffer.remaining() >= LIMIT_REMAINING ) {
+                        boolean isEof = false;
+                        while( buffer.remaining() >= LIMIT_REMAINING
+                                && !isEof ) {
 
                             while( reqCounter.get() > 0 ) {
 
@@ -187,6 +189,8 @@ public class NioLaserServer {
                                     // EOF
                                     final GetEofResp resp = new GetEofResp();
                                     buffer.putInt(resp.getType());
+                                    isEof = true;
+                                    break;
                                 } else {
                                     // normal
                                     final GetDataResp resp = new GetDataResp(row.getLineNum(), row.getData());
