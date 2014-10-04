@@ -8,6 +8,6 @@ java \
     -XX:+UseBiasedLocking\
     -Xmx8G \
     -Xms8G \
-    -Xmn1G \
+    -Xmn2G \
     -jar ./target/laser-jar-with-dependencies.jar 'nioclient' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
 
