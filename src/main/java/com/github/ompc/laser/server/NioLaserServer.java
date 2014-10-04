@@ -207,10 +207,10 @@ public class NioLaserServer {
                             iter.remove();
 
                             if (key.isWritable()) {
-                                log.info("debug for write, pos={};remaining={}",
-                                        new Object[]{buffer.position(),buffer.remaining()});
+//                                log.info("debug for write, pos={};remaining={}",
+//                                        new Object[]{buffer.position(),buffer.remaining()});
                                 final int count = socketChannel.write(buffer);
-                                log.info("debug for write, count={}",new Object[]{count});
+//                                log.info("debug for write, count={}",new Object[]{count});
                                 buffer.compact();
 //                                key.interestOps(key.interestOps() & ~OP_WRITE);
                             }
