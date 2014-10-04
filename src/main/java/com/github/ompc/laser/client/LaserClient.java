@@ -6,6 +6,8 @@ import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
 import com.github.ompc.laser.common.networking.Protocol;
+import com.github.ompc.laser.server.datasource.DataPersistence;
+import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,7 @@ public class LaserClient {
 
     private final CountDownLatch countDown;
     private final ExecutorService executorService;
+    private final DataPersistence dataPersistence;
     private final ClientConfiger configer;
     private final LaserOptions options;
 
@@ -34,9 +37,10 @@ public class LaserClient {
     private Socket socket;
     private volatile boolean isRunning = true;
 
-    public LaserClient(CountDownLatch countDown, ExecutorService executorService, ClientConfiger configer, LaserOptions options) throws IOException {
+    public LaserClient(CountDownLatch countDown, ExecutorService executorService, DataPersistence dataPersistence, ClientConfiger configer, LaserOptions options) throws IOException {
         this.countDown = countDown;
         this.executorService = executorService;
+        this.dataPersistence = dataPersistence;
         this.configer = configer;
         this.options = options;
     }
@@ -114,6 +118,8 @@ public class LaserClient {
                         break;
                     } else if (p instanceof GetDataResp) {
                         // TODO : write to ringbuffer
+                        final GetDataResp resp = (GetDataResp)p;
+                        dataPersistence.putRow(new Row(resp.getLineNum(), resp.getData()));
                     } else {
                         // can't happen
                     }

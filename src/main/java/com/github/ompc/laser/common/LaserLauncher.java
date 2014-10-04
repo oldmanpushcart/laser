@@ -6,8 +6,10 @@ import com.github.ompc.laser.client.NioLaserClient;
 import com.github.ompc.laser.server.LaserServer;
 import com.github.ompc.laser.server.NioLaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
+import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.impl.BlockDataSource;
+import com.github.ompc.laser.server.datasource.impl.BucketDataPersistence;
 import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
 
 import java.io.File;
@@ -86,11 +88,13 @@ public class LaserLauncher {
             t.setDaemon(true);
             return t;
         });
+        final DataPersistence dataPersistence = new BucketDataPersistence(configer.getDataFile());
+        dataPersistence.init();
 
         // 建立链接
         final Set<LaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
-            final LaserClient client = new LaserClient(countDown, executorService, configer, options);
+            final LaserClient client = new LaserClient(countDown, executorService, dataPersistence, configer, options);
             client.connect();
             clients.add(client);
         }
@@ -103,6 +107,11 @@ public class LaserLauncher {
 
         // 等待所有Client完成
         countDown.await();
+
+        // 刷新结果
+        dataPersistence.finish();
+        dataPersistence.destroy();
+
         final long endTime = System.currentTimeMillis();
         System.out.println("cost=" + (endTime - startTime));
 
@@ -144,11 +153,13 @@ public class LaserLauncher {
             t.setDaemon(true);
             return t;
         });
+        final DataPersistence dataPersistence = new BucketDataPersistence(configer.getDataFile());
+        dataPersistence.init();
 
         // 建立链接
         final Set<NioLaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
-            final NioLaserClient client = new NioLaserClient(countDown, executorService, configer, options);
+            final NioLaserClient client = new NioLaserClient(countDown, executorService, dataPersistence, configer, options);
             client.connect();
             clients.add(client);
         }
@@ -161,6 +172,11 @@ public class LaserLauncher {
 
         // 等待所有Client完成
         countDown.await();
+
+        // 刷新结果
+        dataPersistence.finish();
+        dataPersistence.destroy();
+
         final long endTime = System.currentTimeMillis();
         System.out.println("cost=" + (endTime - startTime));
 

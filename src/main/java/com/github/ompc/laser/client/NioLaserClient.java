@@ -2,7 +2,8 @@ package com.github.ompc.laser.client;
 
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.networking.GetDataReq;
-import com.github.ompc.laser.common.networking.GetDataResp;
+import com.github.ompc.laser.server.datasource.DataPersistence;
+import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,7 @@ public class NioLaserClient {
 
     private final CountDownLatch countDown;
     private final ExecutorService executorService;
+    private final DataPersistence dataPersistence;
     private final ClientConfiger configer;
     private final LaserOptions options;
 
@@ -40,9 +42,10 @@ public class NioLaserClient {
     private volatile boolean isRunning = true;
 
 
-    public NioLaserClient(CountDownLatch countDown, ExecutorService executorService, ClientConfiger configer, LaserOptions options) {
+    public NioLaserClient(CountDownLatch countDown, ExecutorService executorService, DataPersistence dataPersistence, ClientConfiger configer, LaserOptions options) {
         this.countDown = countDown;
         this.executorService = executorService;
+        this.dataPersistence = dataPersistence;
         this.configer = configer;
         this.options = options;
     }
@@ -109,29 +112,6 @@ public class NioLaserClient {
     }
 
     /**
-     * GetDataResp 处理器
-     */
-    private class GetDataRespHandler implements Runnable {
-
-        private final GetDataResp resp;
-
-        private GetDataRespHandler(GetDataResp resp) {
-            this.resp = resp;
-            currentThread().setName("client-" + format(socketChannel.socket()) + "-worker");
-        }
-
-        @Override
-        public void run() {
-
-            // TODO : put to file
-//            log.info("{} receive data, lineNum={},len={}",
-//                    new Object[]{format(socketChannel.socket()), resp.getLineNum(), resp.getData().length});
-
-        }
-
-    }
-
-    /**
      * 读线程
      */
     final Runnable writer = new Runnable() {
@@ -170,7 +150,7 @@ public class NioLaserClient {
 
                 }
 
-            } catch(CancelledKeyException cke){
+            } catch (CancelledKeyException cke) {
                 // ingore...
             } catch (IOException ioe) {
                 if (!socketChannel.socket().isClosed()) {
@@ -263,7 +243,7 @@ public class NioLaserClient {
                                         hasMore = true;
 
                                         // handler GetDataResp
-//                                    executorService.execute(new GetDataRespHandler(new GetDataResp(lineNum, data)));
+                                        dataPersistence.putRow(new Row(lineNum, data));
 
                                         break;
                                     case READ_GETEOF:
