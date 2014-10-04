@@ -8,6 +8,11 @@ java \
     -XX:+UseBiasedLocking\
     -Xmx8G \
     -Xms8G \
-    -Xmn2G \
+    -Xmn4G \
+    -XX:+UseConcMarkSweepGC \
+    -XX:CMSMaxAbortablePrecleanTime=5000 \
+    -XX:+CMSClassUnloadingEnabled \
+    -XX:CMSInitiatingOccupancyFraction=80 \
+    -XX:+UseCMSInitiatingOccupancyOnly \
     -jar ./target/laser-jar-with-dependencies.jar 'nioclient' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
 
