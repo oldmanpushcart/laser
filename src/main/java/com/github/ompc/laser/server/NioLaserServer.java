@@ -1,6 +1,7 @@
 package com.github.ompc.laser.server;
 
 import com.github.ompc.laser.common.LaserOptions;
+import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
 import com.github.ompc.laser.server.datasource.DataSource;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.github.ompc.laser.common.LaserConstant.PRO_REQ_GETDATA;
+import static com.github.ompc.laser.common.LaserUtils.process;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
 
@@ -198,7 +200,7 @@ public class NioLaserServer {
                                     break;
                                 } else {
                                     // normal
-                                    final GetDataResp resp = new GetDataResp(row.getLineNum(), row.getData());
+                                    final GetDataResp resp = new GetDataResp(row.getLineNum(), process(row.getData()));
                                     buffer.putInt(resp.getType());
                                     buffer.putInt(resp.getLineNum());
                                     buffer.putInt(resp.getData().length);
