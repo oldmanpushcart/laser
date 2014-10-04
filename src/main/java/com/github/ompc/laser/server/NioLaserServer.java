@@ -171,30 +171,36 @@ public class NioLaserServer {
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
                     while (isRunning) {
 
-                        while( reqCounter.get() > 0 ) {
+                        while( buffer.remaining() >= LIMIT_REMAINING ) {
 
-                            if( buffer.remaining() < LIMIT_REMAINING ) {
-                                // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
-                                break;
-                            }
+                            while( reqCounter.get() > 0 ) {
 
-                            reqCounter.decrementAndGet();
-                            final Row row = dataSource.getRow();
+                                if (buffer.remaining() < LIMIT_REMAINING) {
+                                    // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
+                                    break;
+                                }
 
-                            if( row.getLineNum() < 0 ) {
-                                // EOF
-                                final GetEofResp resp = new GetEofResp();
-                                buffer.putInt(resp.getType());
-                            } else {
-                                // normal
-                                final GetDataResp resp = new GetDataResp(row.getLineNum(), row.getData());
-                                buffer.putInt(resp.getType());
-                                buffer.putInt(resp.getLineNum());
-                                buffer.putInt(resp.getData().length);
-                                buffer.put(resp.getData());
-                            }
+                                reqCounter.decrementAndGet();
+                                final Row row = dataSource.getRow();
 
-                        }//while
+                                if( row.getLineNum() < 0 ) {
+                                    // EOF
+                                    final GetEofResp resp = new GetEofResp();
+                                    buffer.putInt(resp.getType());
+                                } else {
+                                    // normal
+                                    final GetDataResp resp = new GetDataResp(row.getLineNum(), row.getData());
+                                    buffer.putInt(resp.getType());
+                                    buffer.putInt(resp.getLineNum());
+                                    buffer.putInt(resp.getData().length);
+                                    buffer.put(resp.getData());
+                                }
+
+                            }//while
+
+                        }
+
+
 
                         // 这里似乎有点多余~
 //                        socketChannel.register(selector, OP_WRITE);
