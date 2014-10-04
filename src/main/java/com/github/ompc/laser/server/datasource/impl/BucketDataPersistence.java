@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,7 +27,7 @@ public class BucketDataPersistence implements DataPersistence {
 
     private final static int BUCKET_ROWS_SIZE = 1024 * 512;//每个数据桶大小
     private final static int BUCKET_SIZE = 1024;//桶总数
-    private final static byte[] ENDS = new byte[]{'\r','\n'};
+    private final static byte[] ENDS = new byte[]{'\r', '\n'};
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final File dataFile;
@@ -34,8 +35,9 @@ public class BucketDataPersistence implements DataPersistence {
     private final ReentrantLock writeLock = new ReentrantLock();
     private final Condition writeCondition = writeLock.newCondition();
 
-    private boolean isFinished = false;//是否被标记为finished,如果被标记则需要强刷最后一个未完成的桶
+    private boolean isFlushed = false;//是否被标记为finished,如果被标记则需要强刷最后一个未完成的桶
     private final CountDownLatch finishCountDown = new CountDownLatch(1);
+    private final ArrayList<MappedByteBuffer> waitForFlushBuffers = new ArrayList<>();
 
     final Runnable writer = new Runnable() {
 
@@ -49,7 +51,7 @@ public class BucketDataPersistence implements DataPersistence {
             long pos = 0;
 
             // 检查文件是否存在，不存在则创建
-            if( !dataFile.exists() ) {
+            if (!dataFile.exists()) {
                 try {
                     dataFile.createNewFile();
                 } catch (IOException e) {
@@ -59,7 +61,7 @@ public class BucketDataPersistence implements DataPersistence {
 
             try (final FileChannel fileChannel = new RandomAccessFile(dataFile, "rw").getChannel()) {
 
-                while (!isFinished) {
+                while (!isFlushed) {
 
                     writeLock.lock();
                     try {
@@ -80,20 +82,23 @@ public class BucketDataPersistence implements DataPersistence {
                         }
 
                         if (bucket.isFull()
-                                || (isFinished && !bucket.isEmpty())) {
+                                || (isFlushed && !bucket.isEmpty())) {
                             final long byteCount = bucket.byteCount.get();
                             final int rowCount = bucket.rowCount.get();
                             final Row[] rows = bucket.rows;
                             final MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, pos, byteCount);
 
-                            for( int rowIdx=0; rowIdx<rowCount; rowIdx++ ) {
+                            for (int rowIdx = 0; rowIdx < rowCount; rowIdx++) {
                                 final Row row = rows[rowIdx];
                                 buffer.put(String.valueOf(row.getLineNum()).getBytes());
                                 buffer.put(row.getData());
                                 buffer.put(ENDS);
                             }
-                            buffer.force();
-                            unmap(buffer);
+
+                            waitForFlushBuffers.add(buffer);
+
+//                            buffer.force();
+//                            unmap(buffer);
 
                             // 计数
                             pos += byteCount;
@@ -101,7 +106,7 @@ public class BucketDataPersistence implements DataPersistence {
 
                             // 刷完一个桶则释放一个
                             buckets[i] = null;
-                            log.info("bucket[{}] was forced, size={}",i,byteCount);
+                            log.info("bucket[{}] was finished, size={}", i, byteCount);
                         } else {
                             // 只要顺序上有一个桶未被填满则立即中断循环，等待下次唤醒
                             break;
@@ -138,8 +143,8 @@ public class BucketDataPersistence implements DataPersistence {
         final byte[] lineNumBytes = String.valueOf(row.getLineNum()).getBytes();
         bucket.byteCount.addAndGet(
                 lineNumBytes.length
-                        +row.getData().length
-                        +2//\r\n
+                        + row.getData().length
+                        + 2//\r\n
         );
 
         // 如果桶被装满了则需要唤醒写入线程
@@ -163,15 +168,15 @@ public class BucketDataPersistence implements DataPersistence {
         }
 
         // 初始化写入线程
-        new Thread(writer,"BucketDataPersistence-writer").start();
+        new Thread(writer, "BucketDataPersistence-writer").start();
 
         log.info("BucketDataPersistence(file:{}) was inited", dataFile);
 
     }
 
     @Override
-    public void finish() throws IOException {
-        isFinished = true;
+    public void flush() throws IOException {
+        isFlushed = true;
         writeLock.lock();
         try {
             writeCondition.signal();
@@ -184,7 +189,13 @@ public class BucketDataPersistence implements DataPersistence {
         } catch (InterruptedException e) {
             // ingore...
         }
-        log.info("BucketDataPersistence(file:{}) was finished.", dataFile);
+
+        for( MappedByteBuffer buffer : waitForFlushBuffers ) {
+            buffer.force();
+            unmap(buffer);
+        }
+
+        log.info("BucketDataPersistence(file:{}) was flushed.", dataFile);
     }
 
     @Override

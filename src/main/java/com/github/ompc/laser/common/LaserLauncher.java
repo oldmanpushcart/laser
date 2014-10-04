@@ -8,7 +8,6 @@ import com.github.ompc.laser.server.NioLaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
 import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.DataSource;
-import com.github.ompc.laser.server.datasource.impl.BlockDataSource;
 import com.github.ompc.laser.server.datasource.impl.BucketDataPersistence;
 import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
 
@@ -108,12 +107,12 @@ public class LaserLauncher {
         // 等待所有Client完成
         countDown.await();
 
-        // 刷新结果
-        dataPersistence.finish();
-        dataPersistence.destroy();
-
         final long endTime = System.currentTimeMillis();
         System.out.println("cost=" + (endTime - startTime));
+
+        // 刷新结果
+        dataPersistence.flush();
+        dataPersistence.destroy();
 
         // registe shutdown
         getRuntime().addShutdownHook(new Thread(() -> {
@@ -173,12 +172,12 @@ public class LaserLauncher {
         // 等待所有Client完成
         countDown.await();
 
-        // 刷新结果
-        dataPersistence.finish();
-        dataPersistence.destroy();
-
         final long endTime = System.currentTimeMillis();
         System.out.println("cost=" + (endTime - startTime));
+
+        // 刷新结果
+        dataPersistence.flush();
+        dataPersistence.destroy();
 
         // registe shutdown
         getRuntime().addShutdownHook(new Thread(() -> {

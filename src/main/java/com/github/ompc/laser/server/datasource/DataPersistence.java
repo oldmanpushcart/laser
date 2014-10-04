@@ -25,11 +25,11 @@ public interface DataPersistence {
     void init() throws IOException;
 
     /**
-     * 完成尚未完成的持久化
+     * 刷新持久化数据
      *
-     * @throws IOException 完成持久化失败
+     * @throws IOException 刷入磁盘失败
      */
-    void finish() throws IOException;
+    void flush() throws IOException;
 
     /**
      * 销毁数据持久化
