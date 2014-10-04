@@ -18,4 +18,4 @@ java \
     -XX:+CMSClassUnloadingEnabled \
     -XX:CMSInitiatingOccupancyFraction=80 \
     -XX:+UseCMSInitiatingOccupancyOnly \
-    -jar ./target/laser-jar-with-dependencies.jar 'server' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
+    -jar ./target/laser-jar-with-dependencies.jar 'nioserver' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties

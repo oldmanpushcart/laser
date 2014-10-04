@@ -4,6 +4,7 @@ import com.github.ompc.laser.client.ClientConfiger;
 import com.github.ompc.laser.client.LaserClient;
 import com.github.ompc.laser.client.NioLaserClient;
 import com.github.ompc.laser.server.LaserServer;
+import com.github.ompc.laser.server.NioLaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
@@ -177,6 +178,43 @@ public class LaserLauncher {
 
     }
 
+    /**
+     * 启动NIO服务器
+     * @param args
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static void startNioServer(String... args) throws IOException, InterruptedException {
+        final ServerConfiger configer = new ServerConfiger();
+        configer.setDataFile(new File(args[1]));
+        configer.setPort(Integer.valueOf(args[2]));
+
+        final LaserOptions options = new LaserOptions(new File(args[3]));
+
+        final DataSource dataSource = new MappingDataSource(configer.getDataFile());
+        dataSource.init();
+
+        final CountDownLatch countDown = new CountDownLatch(1);
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+
+        final NioLaserServer server = new NioLaserServer(dataSource, countDown, executorService, configer, options);
+        server.startup();
+
+        // registe shutdown
+        getRuntime().addShutdownHook(new Thread(() -> {
+            currentThread().setName("server-shutdown-hook");
+            try {
+                dataSource.destroy();
+                server.shutdown();
+                executorService.shutdown();
+            } catch (IOException e) {
+                // do nothing...
+            }
+        }));
+
+        countDown.await();
+    }
+
     public static void main(String... args) throws IOException, InterruptedException {
 
         if (args[0].equals("server")) {
@@ -185,6 +223,8 @@ public class LaserLauncher {
             startClient(args);
         } else if (args[0].equals("nioclient")) {
             startNioClient(args);
+        } else if (args[0].equals("nioserver")) {
+            startNioServer(args);
         } else {
             throw new IllegalArgumentException("illegal args[0]=" + args[0]);
         }
