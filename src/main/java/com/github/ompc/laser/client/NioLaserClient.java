@@ -1,6 +1,5 @@
 package com.github.ompc.laser.client;
 
-import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
@@ -21,9 +20,7 @@ import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETDATA;
 import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETEOF;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
-import static java.nio.channels.SelectionKey.OP_CONNECT;
-import static java.nio.channels.SelectionKey.OP_READ;
-import static java.nio.channels.SelectionKey.OP_WRITE;
+import static java.nio.channels.SelectionKey.*;
 
 /**
  * NIO版本的LaserClient
@@ -209,7 +206,7 @@ public class NioLaserClient {
 
                 socketChannel.register(selector, OP_READ);
                 MAIN_LOOP:
-                while(isRunning) {
+                while (isRunning) {
 
                     selector.select();
                     final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
@@ -220,62 +217,69 @@ public class NioLaserClient {
 
                         if (key.isReadable()) {
 
-                            switch( state ) {
-                                case READ_TYPE:
-                                    socketChannel.read(buffer);
-                                    buffer.flip();
-                                    if( buffer.limit() < Integer.BYTES ) {
-                                        break;
-                                    }
-                                    type = buffer.getInt();
-                                    if( type == PRO_RESP_GETDATA) {
-                                        state = DecodeState.READ_GETDATA_LINENUM;
-                                    } else if( type == PRO_RESP_GETEOF) {
-                                        state = DecodeState.READ_GETEOF;
-                                        break;
-                                    } else {
-                                        throw new IOException("decode failed, illegal type="+type);
-                                    }
-                                case READ_GETDATA_LINENUM:
-                                    if( buffer.limit() < Integer.BYTES ) {
-                                        break;
-                                    }
-                                    lineNum = buffer.getInt();
-                                    state = DecodeState.READ_GETDATA_LEN;
-                                case READ_GETDATA_LEN:
-                                    if( buffer.limit() < Integer.BYTES ) {
-                                        break;
-                                    }
-                                    len = buffer.getInt();
-                                    state = DecodeState.READ_GETDATA_DATA;
-                                case READ_GETDATA_DATA:
-                                    if( buffer.limit() < len ) {
-                                        break;
-                                    }
-                                    final byte[] data = new byte[len];
-                                    buffer.get(data);
+                            socketChannel.read(buffer);
+                            buffer.flip();
 
-                                    state = DecodeState.READ_TYPE;
+                            boolean hasMore = true;
+                            while (hasMore) {
+                                hasMore = false;
+                                switch (state) {
+                                    case READ_TYPE:
+                                        if (buffer.limit() < Integer.BYTES) {
+                                            break;
+                                        }
+                                        type = buffer.getInt();
+                                        if (type == PRO_RESP_GETDATA) {
+                                            state = DecodeState.READ_GETDATA_LINENUM;
+                                        } else if (type == PRO_RESP_GETEOF) {
+                                            state = DecodeState.READ_GETEOF;
+                                            break;
+                                        } else {
+                                            throw new IOException("decode failed, illegal type=" + type);
+                                        }
+                                    case READ_GETDATA_LINENUM:
+                                        if (buffer.limit() < Integer.BYTES) {
+                                            break;
+                                        }
+                                        lineNum = buffer.getInt();
+                                        state = DecodeState.READ_GETDATA_LEN;
+                                    case READ_GETDATA_LEN:
+                                        if (buffer.limit() < Integer.BYTES) {
+                                            break;
+                                        }
+                                        len = buffer.getInt();
+                                        state = DecodeState.READ_GETDATA_DATA;
+                                    case READ_GETDATA_DATA:
+                                        if (buffer.limit() < len) {
+                                            break;
+                                        }
+                                        final byte[] data = new byte[len];
+                                        buffer.get(data);
 
-                                    // handler GetDataResp
+                                        state = DecodeState.READ_TYPE;
+                                        hasMore = true;
+
+                                        // handler GetDataResp
 //                                    executorService.execute(new GetDataRespHandler(new GetDataResp(lineNum, data)));
 
-                                    break;
-                                case READ_GETEOF:
-                                    // 收到EOF，结束整个reader
-                                    countDown.countDown();
-                                    log.info("{} receive EOF.", format(socketChannel.socket()));
-                                    break MAIN_LOOP;
+                                        break;
+                                    case READ_GETEOF:
+                                        // 收到EOF，结束整个reader
+                                        countDown.countDown();
+                                        log.info("{} receive EOF.", format(socketChannel.socket()));
+                                        break MAIN_LOOP;
 
-                                default:
-                                    throw new IOException("decode failed, illegal state="+state);
-                            }//switch
+                                    default:
+                                        throw new IOException("decode failed, illegal state=" + state);
+                                }//switch
+
+                            }//while:hasMore
 
                             buffer.compact();
 
-                        }//if
+                        }//if:readable
 
-                    }//while
+                    }//while:iter
 
                 }//while:MAIN_LOOP
 
@@ -307,7 +311,7 @@ public class NioLaserClient {
     public void disconnect() throws IOException {
 
         isRunning = false;
-        if( null != socketChannel ) {
+        if (null != socketChannel) {
             socketChannel.close();
         }
 
