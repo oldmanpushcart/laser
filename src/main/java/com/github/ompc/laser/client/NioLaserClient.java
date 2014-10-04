@@ -252,7 +252,8 @@ public class NioLaserClient {
 
                                         break;
                                     case READ_GETEOF:
-                                        // 收到EOF，结束整个reader
+                                        // 收到EOF，结束整个client
+                                        isRunning = false;
                                         countDown.countDown();
                                         log.info("{} receive EOF.", format(socketChannel.socket()));
                                         break MAIN_LOOP;
