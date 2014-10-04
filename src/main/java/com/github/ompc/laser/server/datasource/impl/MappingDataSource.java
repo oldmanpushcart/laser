@@ -82,7 +82,7 @@ public class MappingDataSource implements DataSource {
             long pos = 0;
             final ByteBuffer dataBuffer = ByteBuffer.allocate(1024);
             final long fileSize = fileChannel.size();
-            while (pos <= fileSize) {
+            while (pos < fileSize) {
 
                 // mapping
                 final long loadStartTime = System.currentTimeMillis();
