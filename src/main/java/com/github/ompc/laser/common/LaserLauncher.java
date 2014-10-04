@@ -194,7 +194,7 @@ public class LaserLauncher {
         final DataSource dataSource = new MappingDataSource(configer.getDataFile());
         dataSource.init();
 
-        final CountDownLatch countDown = new CountDownLatch(1);
+        final CountDownLatch countDown = new CountDownLatch(2);//read&write
         final ExecutorService executorService = Executors.newCachedThreadPool();
 
         final NioLaserServer server = new NioLaserServer(dataSource, countDown, executorService, configer, options);

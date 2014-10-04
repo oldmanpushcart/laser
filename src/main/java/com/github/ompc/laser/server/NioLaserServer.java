@@ -82,6 +82,8 @@ public class NioLaserServer {
 
             } catch (IOException ioe) {
                 log.warn("server[port={}] accept failed.", configer.getPort(), ioe);
+                countDown.countDown();//for read
+                countDown.countDown();//for write
             }
 
         }
@@ -151,6 +153,7 @@ public class NioLaserServer {
 
                 } catch (IOException ioe) {
                     log.info("{} was disconnect for read.", format(socketChannel.socket()));
+                    countDown.countDown();
                 }
 
             }
@@ -231,6 +234,7 @@ public class NioLaserServer {
 
                 } catch (IOException ioe) {
                     log.info("{} was disconnect for write.", format(socketChannel.socket()));
+                    countDown.countDown();
                 }
 
             }
