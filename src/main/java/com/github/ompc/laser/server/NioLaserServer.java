@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.github.ompc.laser.common.LaserConstant.PRO_REQ_GETDATA;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
-import static java.nio.channels.SelectionKey.OP_WRITE;
 
 /**
  * Nio实现的服务端
@@ -42,6 +41,8 @@ public class NioLaserServer {
 
     private ServerSocketChannel serverSocketChannel;
     private volatile boolean isRunning = true;
+    private boolean isReaderRunning = true;
+    private boolean isWriterRunning = true;
 
     public NioLaserServer(DataSource dataSource, CountDownLatch countDown, ExecutorService executorService, ServerConfiger configer, LaserOptions options) {
         this.dataSource = dataSource;
@@ -82,8 +83,6 @@ public class NioLaserServer {
 
             } catch (IOException ioe) {
                 log.warn("server[port={}] accept failed.", configer.getPort(), ioe);
-                countDown.countDown();//for read
-                countDown.countDown();//for write
             }
 
         }
@@ -116,7 +115,8 @@ public class NioLaserServer {
                 try (final Selector selector = Selector.open()) {
 
                     socketChannel.register(selector, SelectionKey.OP_READ);
-                    while (isRunning) {
+                    while (isRunning
+                            && isReaderRunning) {
 
                         selector.select();
                         final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
@@ -153,7 +153,8 @@ public class NioLaserServer {
 
                 } catch (IOException ioe) {
                     log.info("{} was disconnect for read.", format(socketChannel.socket()));
-                    countDown.countDown();
+                } finally {
+                    isReaderRunning = false;
                 }
 
             }
@@ -172,13 +173,14 @@ public class NioLaserServer {
 
                     final int LIMIT_REMAINING = 212;//TYPE(4B)+LINENUM(4B)+LEN(4B)+DATA(200B)
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
-                    while (isRunning) {
+                    while (isRunning
+                            && isWriterRunning) {
 
                         boolean isEof = false;
-                        while( buffer.remaining() >= LIMIT_REMAINING
-                                && !isEof ) {
+                        while (buffer.remaining() >= LIMIT_REMAINING
+                                && !isEof) {
 
-                            while( reqCounter.get() > 0 ) {
+                            while (reqCounter.get() > 0) {
 
                                 if (buffer.remaining() < LIMIT_REMAINING) {
                                     // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
@@ -188,7 +190,7 @@ public class NioLaserServer {
                                 reqCounter.decrementAndGet();
                                 final Row row = dataSource.getRow();
 
-                                if( row.getLineNum() < 0 ) {
+                                if (row.getLineNum() < 0) {
                                     // EOF
                                     final GetEofResp resp = new GetEofResp();
                                     buffer.putInt(resp.getType());
@@ -206,7 +208,6 @@ public class NioLaserServer {
                             }//while
 
                         }
-
 
 
                         // 这里似乎有点多余~
@@ -234,7 +235,8 @@ public class NioLaserServer {
 
                 } catch (IOException ioe) {
                     log.info("{} was disconnect for write.", format(socketChannel.socket()));
-                    countDown.countDown();
+                } finally {
+                    isWriterRunning = false;
                 }
 
             }
@@ -299,7 +301,7 @@ public class NioLaserServer {
     public void shutdown() throws IOException {
 
         isRunning = false;
-        if( null != serverSocketChannel ) {
+        if (null != serverSocketChannel) {
             serverSocketChannel.close();
         }
 
