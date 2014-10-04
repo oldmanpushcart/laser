@@ -196,7 +196,7 @@ public class NioLaserServer {
 
                         }//while
 
-                        // 这里似乎有点多余
+                        // 这里似乎有点多余~
 //                        socketChannel.register(selector, OP_WRITE);
                         buffer.flip();
 
