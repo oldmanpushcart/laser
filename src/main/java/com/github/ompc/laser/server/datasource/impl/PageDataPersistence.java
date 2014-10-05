@@ -222,6 +222,8 @@ public class PageDataPersistence implements DataPersistence {
 
                             // 当前行数据偏移量
                             final int offsetOfRowData = offsetOfRow + Integer.BYTES;
+                            log.info("mappedBuffer==null is {},fileOffset={};byteCount={}",
+                                    new Object[]{mappedBuffer == null, fileOffset, page.byteCount.get()});
                             mappedBuffer.put(page.data, offsetOfRowData, validByteCount);
                         }//for
                         waitingFlushBufferMap.put(page.pageNum, mappedBuffer);
