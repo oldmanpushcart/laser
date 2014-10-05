@@ -84,30 +84,17 @@ public class PageDataSource implements DataSource {
         this.dataFile = dataFile;
     }
 
-
     @Override
     public Row getRow() throws IOException {
 
-        // 判断是否已经到EOF
-        if (isEOF) {
-            final int lineNum = lineCounter.get() - 1;
-
-            // 计算页码
-            final int pageNum = lineNum / PAGE_ROWS_NUM;
-
-            // 计算页码表位置
-            final int tableIdx = pageNum % PAGE_TABLE_SIZE;
-
-            // 计算页面内行号
-            final int rowNum = lineNum % PAGE_ROWS_NUM;
-
-            final Page page = pageTable[tableIdx];
-            if (lineNum < 0
-                    || (page.isLast && page.isEmpty())) {
-                // 到达EOF
-                return new Row(-1, EMPTY_DATA);
-            }
-
+        // 获取上一个行号
+        final int lastLineNum = lineCounter.get();
+        final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
+        final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
+        if( pageTable[lastTableIdx].isLast
+                && pageTable[lastTableIdx].isEmpty()) {
+            // 到达EOF
+            return new Row(-1, EMPTY_DATA);
         }
 
 
