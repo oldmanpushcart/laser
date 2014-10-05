@@ -127,7 +127,6 @@ public class PageDataSource implements DataSource {
 
         ;
 
-        page.readCount.decrementAndGet();
         if( page.isEmpty() ) {
             // 自旋出来一看,我操,早已到达EOF
             return new Row(-1, EMPTY_DATA);
@@ -148,6 +147,8 @@ public class PageDataSource implements DataSource {
         final int validByteCount = byteBuffer.getInt();
         final byte[] data = new byte[validByteCount];
         byteBuffer.get(data);
+
+        page.readCount.decrementAndGet();
 
         // 判断一页是否读完,读完后需要通知切换者切换页面
         if (page.isEmpty()) {
