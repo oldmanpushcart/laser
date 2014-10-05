@@ -48,13 +48,13 @@ public class PageDataSource implements DataSource {
      * 页行数<br/>
      * 一页中总共有几行
      */
-    private final int PAGE_ROWS_NUM = 1000000;
+    private final int PAGE_ROWS_NUM = 2000000;
 
     /*
      * 页码表大小<br/>
      * 一共有几页
      */
-    private final int PAGE_TABLE_SIZE = 10;
+    private final int PAGE_TABLE_SIZE = 5;
 
     /*
      * 页码表
@@ -118,15 +118,15 @@ public class PageDataSource implements DataSource {
         // 计算页码表位置
         final int tableIdx = pageNum % PAGE_TABLE_SIZE;
 
-        boolean isLog = true;
+//        boolean isLog = true;
         while (pageTable[tableIdx].pageNum != pageNum) {
             // TODO : 优化自旋锁
             Thread.yield();
-            if( isLog ) {
-                log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
-            }
-            isLog = false;
+//            if( isLog ) {
+//                log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
+//                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+//            }
+//            isLog = false;
 
             // 如果页码表中当前位置所存放的页面编码对应不上
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
@@ -150,14 +150,14 @@ public class PageDataSource implements DataSource {
         // 判断一页是否读完,读完后需要通知切换者切换页面
         if (page.isEmpty()) {
             if (page.isLast) {
-                log.info("debug page.isLast, signal swicher, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+//                log.info("debug page.isLast, signal swicher, page.pageNum={},pageNum={},lineNum={}",
+//                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
                 isEOF = true;
             }
             pageSwitchLock.lock();
             try {
-                log.info("debug page.isEmpty, signal swicher, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+//                log.info("debug page.isEmpty, signal swicher, page.pageNum={},pageNum={},lineNum={}",
+//                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
                 pageSwitchWakeupCondition.signal();
             } finally {
                 pageSwitchLock.unlock();
@@ -311,7 +311,7 @@ public class PageDataSource implements DataSource {
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
                         page.readCount.set(rowIdx);
-                        log.info("dbug for page.pageNum={} was switched.", page.pageNum);
+                        log.info("page.pageNum={} was switched.", page.pageNum);
 
                         if (fileOffset == fileSize) {
                             page.isLast = true;
