@@ -127,8 +127,8 @@ public class PageDataSource implements DataSource {
 
         ;
 
-        if( page.isEmpty()
-                && page.readCount.decrementAndGet() < 0) {
+        page.readCount.decrementAndGet();
+        if( page.isEmpty() ) {
             // 自旋出来一看,我操,早已到达EOF
             return new Row(-1, EMPTY_DATA);
         }
