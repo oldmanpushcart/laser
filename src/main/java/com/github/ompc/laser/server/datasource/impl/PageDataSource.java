@@ -243,7 +243,7 @@ public class PageDataSource implements DataSource {
                                 // 修正映射长度
                                 final long fixLength = (fileOffset + BUFFER_SIZE >= fileSize) ? fileSize - fileOffset : BUFFER_SIZE;
                                 if( fixLength > 0 ) {
-                                    mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength);
+                                    mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength).force();
                                 }
                             }
 
