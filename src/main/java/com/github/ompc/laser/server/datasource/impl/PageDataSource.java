@@ -130,14 +130,20 @@ public class PageDataSource implements DataSource {
 
         final Page page = pageTable[tableIdx];
 
-        int dec = page.readCount.decrementAndGet();
-        if ( dec < 0 ) {
-            log.info("debug for 0, page.pageNum={},pageNum={},lineNum={},dec={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum,dec});
-            while(!isEOF) {
+        while(true) {
+            final int readCount = page.readCount.get();
+            if( readCount == 0 ) {
+                log.info("debug for 0, page.pageNum={},pageNum={},lineNum={}",
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
+                while(!isEOF) {
 
+                }
+                return new Row(-1, EMPTY_DATA);
             }
-            return new Row(-1, EMPTY_DATA);
+            if( !page.readCount.compareAndSet(readCount, readCount-1) ) {
+                continue;
+            }
+            break;
         }
 
         final int rowNum = lineNum % PAGE_ROWS_NUM;
