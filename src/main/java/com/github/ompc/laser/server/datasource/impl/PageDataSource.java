@@ -1,5 +1,6 @@
 package com.github.ompc.laser.server.datasource.impl;
 
+import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.github.ompc.laser.common.LaserUtils.unmap;
 import static java.lang.Thread.currentThread;
 import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
 
@@ -242,6 +244,11 @@ public class PageDataSource implements DataSource {
                                 // 如果文件缓存是第一次加载,或者已到达尽头,需要做一次切换映射
                                 // 修正映射长度
                                 final long fixLength = (fileOffset + BUFFER_SIZE >= fileSize) ? fileSize - fileOffset : BUFFER_SIZE;
+
+                                if( null != mappedBuffer ) {
+                                    unmap(mappedBuffer);
+                                }
+
                                 if( fixLength > 0 ) {
                                     mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength).force();
                                 }
