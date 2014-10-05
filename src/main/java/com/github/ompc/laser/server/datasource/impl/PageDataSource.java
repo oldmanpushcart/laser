@@ -100,8 +100,8 @@ public class PageDataSource implements DataSource {
             final int rowNum = lineNum % PAGE_ROWS_NUM;
 
             final Page page = pageTable[tableIdx];
-            if (page.isLast
-                    && page.isEmpty()) {
+            if (lineNum < 0
+                    || (page.isLast && page.isEmpty())) {
                 // 到达EOF
                 return new Row(-1, EMPTY_DATA);
             }
@@ -228,12 +228,11 @@ public class PageDataSource implements DataSource {
                             if (null == mappedBuffer
                                     || !mappedBuffer.hasRemaining()) {
                                 // 如果文件缓存是第一次加载,或者已到达尽头,需要做一次切换映射
-                                mappedBuffer = fileChannel.map(
-                                        READ_ONLY,
-                                        fileOffset,
-                                        // 修正映射长度
-                                        (fileOffset + BUFFER_SIZE >= fileSize) ? fileSize - fileOffset : BUFFER_SIZE
-                                );
+                                // 修正映射长度
+                                final long fixLength = (fileOffset + BUFFER_SIZE >= fileSize) ? fileSize - fileOffset : BUFFER_SIZE;
+                                if( fixLength > 0 ) {
+                                    mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength);
+                                }
                             }
 
                             if (!mappedBuffer.hasRemaining()) {
@@ -272,7 +271,7 @@ public class PageDataSource implements DataSource {
                                         tempBuffer.flip();
                                         final int dataLength = tempBuffer.limit();
                                         dataBuffer.putInt(dataLength);
-                                        fileOffset += dataLength+2;
+                                        fileOffset += dataLength + 2;
                                         dataBuffer.put(tempBuffer);
                                         tempBuffer.clear();
 
