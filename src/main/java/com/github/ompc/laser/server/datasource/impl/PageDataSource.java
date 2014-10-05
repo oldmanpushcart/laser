@@ -48,7 +48,7 @@ public class PageDataSource implements DataSource {
      * 页行数<br/>
      * 一页中总共有几行
      */
-    private final int PAGE_ROWS_NUM = 500;
+    private final int PAGE_ROWS_NUM = 100000;
 
     /*
      * 页码表大小<br/>
