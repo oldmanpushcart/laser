@@ -55,7 +55,7 @@ public class PageDataSource implements DataSource {
      * 页码表大小<br/>
      * 一共有几页
      */
-    private final int PAGE_TABLE_SIZE = 12;
+    private final int PAGE_TABLE_SIZE = 10;
 
     /*
      * 页码表
