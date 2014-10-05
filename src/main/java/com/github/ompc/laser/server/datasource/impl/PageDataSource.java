@@ -13,6 +13,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -91,8 +92,10 @@ public class PageDataSource implements DataSource {
             final int lastLineNum = lineCounter.get();
             final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
             final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
+            final int lastRowNum = lastLineNum % PAGE_ROWS_NUM;
+            final int offsetOfRow = lastRowNum * PAGE_ROW_SIZE;
             if (pageTable[lastTableIdx].isLast
-                    && pageTable[lastTableIdx].isEmpty()) {
+                    && pageTable[lastTableIdx].byteCount.get() < offsetOfRow) {
                 // 到达EOF
                 return new Row(-1, EMPTY_DATA);
             }
@@ -125,13 +128,6 @@ public class PageDataSource implements DataSource {
 
         final Page page = pageTable[tableIdx];
 
-        ;
-
-        if( page.isEmpty() ) {
-            // 自旋出来一看,我操,早已到达EOF
-            return new Row(-1, EMPTY_DATA);
-        }
-
         if (lineNum > 10474513) {
             log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
                     new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get()});
@@ -143,6 +139,11 @@ public class PageDataSource implements DataSource {
         // 当前行偏移量
         final int offsetOfRow = rowNum * PAGE_ROW_SIZE;
 
+        if( page.byteCount.get() < offsetOfRow ) {
+            // 自旋出来一看,我操,早已到达EOF
+            return new Row(-1, EMPTY_DATA);
+        }
+
         final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
         final int validByteCount = byteBuffer.getInt();
         final byte[] data = new byte[validByteCount];
@@ -151,7 +152,7 @@ public class PageDataSource implements DataSource {
         page.readCount.decrementAndGet();
 
         // 判断一页是否读完,读完后需要通知切换者切换页面
-        if (page.isEmpty()) {
+        if (page.byteCount.get() < offsetOfRow) {
             page.isLocked = true;
             if (page.isLast) {
                 log.info("debug page.isLast, signal swicher, page.pageNum={},pageNum={},lineNum={}",
@@ -214,7 +215,7 @@ public class PageDataSource implements DataSource {
                     final Page page = pageTable[nextSwitchPageTableIndex];
 
                     if (page.isInit
-                            && !page.isEmpty()) {
+                            && !page.isLocked) {
                         // 如果已经被初始化后的当前页还没被读完,休眠等待被唤醒
                         pageSwitchLock.lock();
                         try {
@@ -228,7 +229,7 @@ public class PageDataSource implements DataSource {
                     }
 
                     if (!page.isInit
-                            || page.isEmpty()) {
+                            || page.isLocked) {
 
                         final ByteBuffer dataBuffer = ByteBuffer.wrap(page.data);
 
@@ -321,6 +322,7 @@ public class PageDataSource implements DataSource {
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
                         page.readCount.set(rowIdx);
+                        page.byteCount.set(rowIdx * PAGE_ROW_SIZE);
                         log.info("page.pageNum={} was switched. fileOffset={},fileSize={},page.rowCount={};",
                                 new Object[]{page.pageNum, fileOffset, fileSize, page.rowCount});
 
@@ -382,6 +384,12 @@ public class PageDataSource implements DataSource {
         int rowCount = 0;
 
         /*
+         * 当前页有效字节数
+         */
+        AtomicLong byteCount = new AtomicLong(0);
+
+
+        /*
          * 已被读取行数
          */
         AtomicInteger readCount = new AtomicInteger(0);
@@ -407,14 +415,14 @@ public class PageDataSource implements DataSource {
          */
         byte[] data = new byte[PAGE_ROW_SIZE * PAGE_ROWS_NUM];
 
-        /**
-         * 判断当前页面是否已经被读完
-         *
-         * @return
-         */
-        boolean isEmpty() {
-            return readCount.get() <= 0;
-        }
+//        /**
+//         * 判断当前页面是否已经被读完
+//         *
+//         * @return
+//         */
+//        boolean isEmpty() {
+//            return readCount.get() <= 0;
+//        }
 
     }
 
