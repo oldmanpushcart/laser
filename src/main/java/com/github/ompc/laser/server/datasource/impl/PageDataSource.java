@@ -125,8 +125,8 @@ public class PageDataSource implements DataSource {
 
         if( lineNum > 10474520
                 && lineNum <= 10474520+2) {
-            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.isEmpty={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum,page.isLast, page.isEmpty()});
+            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum,page.isLast, page.readCount.get()});
         }
 
         // 计算页面内行号
