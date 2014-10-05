@@ -92,9 +92,10 @@ public class PageDataSource implements DataSource {
 
             final Page page = currentPage == null?pageTable[0]:currentPage;
             final int readCount = page.readCount.get();
+            final int rowCount = page.rowCount;
 
             if( page.isLast
-                    && page.isEmpty()) {
+                    && readCount == rowCount) {
                 return new Row(-1, EMPTY_DATA);
             }
 
@@ -118,7 +119,7 @@ public class PageDataSource implements DataSource {
             byteBuffer.get(data);
 
             if( !page.isLast
-                    && page.isEmpty()) {
+                    && readCount == rowCount) {
                 final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
                 currentPage = pageTable[nextPageIdx];
                 pageSwitchLock.lock();
@@ -130,7 +131,7 @@ public class PageDataSource implements DataSource {
             }
 
             if( page.isLast
-                    && page.isEmpty()) {
+                    && readCount == rowCount) {
                 isEOF = true;
             }
 
