@@ -305,7 +305,8 @@ public class PageDataSource implements DataSource {
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
                         page.readCount.set(rowIdx);
-                        log.info("page.pageNum={} was switched.", page.pageNum);
+                        log.info("page.pageNum={} was switched. fileOffset={},fileSize={};",
+                                new Object[]{page.pageNum, fileOffset, fileSize});
 
                         if (fileOffset == fileSize) {
                             page.isLast = true;
