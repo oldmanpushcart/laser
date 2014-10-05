@@ -107,15 +107,15 @@ public class PageDataSource implements DataSource {
         // 计算页码表位置
         final int tableIdx = pageNum % PAGE_TABLE_SIZE;
 
-//        boolean isLog = true;
+        boolean isLog = true;
         while (pageTable[tableIdx].pageNum != pageNum) {
             // TODO : 优化自旋锁
             Thread.yield();
-//            if( isLog ) {
-//                log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
-//                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
-//            }
-//            isLog = false;
+            if( isLog ) {
+                log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+            }
+            isLog = false;
 
             // 如果页码表中当前位置所存放的页面编码对应不上
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
