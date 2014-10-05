@@ -22,6 +22,7 @@ import static com.github.ompc.laser.common.LaserUtils.unmap;
 /**
  * 分桶数据持久化
  * Created by vlinux on 14-10-4.
+ * @deprecated 使用更高效的PageDataPersistence
  */
 public class BucketDataPersistence implements DataPersistence {
 
