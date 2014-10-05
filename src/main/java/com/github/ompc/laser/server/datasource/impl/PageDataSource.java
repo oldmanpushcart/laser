@@ -140,8 +140,8 @@ public class PageDataSource implements DataSource {
         }
 
         if (lineNum > 10474513) {
-            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get()});
+            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={},page.byteCount.get()={},offsetOfRow={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get(),page.byteCount.get(),offsetOfRow});
         }
 
         final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
