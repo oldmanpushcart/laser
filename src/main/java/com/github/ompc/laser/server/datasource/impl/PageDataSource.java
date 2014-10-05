@@ -123,8 +123,12 @@ public class PageDataSource implements DataSource {
             byteBuffer.get(data);
 
             if( !page.isLast
-                    && readCount == rowCount) {
+                    && page.readCount.get() == rowCount) {
                 final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
+                while( pageTable[nextPageIdx].pageNum != page.pageNum+1 ) {
+                    // spin for switch
+                    continue;
+                }
                 currentPage = pageTable[nextPageIdx];
                 pageSwitchLock.lock();
                 try {
@@ -135,7 +139,7 @@ public class PageDataSource implements DataSource {
             }
 
             if( page.isLast
-                    && readCount == rowCount) {
+                    && page.readCount.get() == rowCount) {
                 isEOF = true;
             }
 
