@@ -138,8 +138,13 @@ public class PageDataSource implements DataSource {
         final byte[] data = new byte[validByteCount];
         byteBuffer.get(data);
 
+        page.readCount.decrementAndGet();
+
         // 判断一页是否读完,读完后需要通知切换者切换页面
         if (page.isEmpty()) {
+            if( page.isLast ) {
+                isEOF = true;
+            }
             pageSwitchLock.lock();
             try {
                 pageSwitchWakeupCondition.signal();
@@ -236,7 +241,7 @@ public class PageDataSource implements DataSource {
                                 // 需要关闭页面切换者
                                 // 将当前页标记为最后一页
                                 page.isLast = true;
-                                break MAIN_LOOP;
+                                break FILL_PAGE_LOOP;
                             }
 
                             while (mappedBuffer.hasRemaining()) {
@@ -274,7 +279,7 @@ public class PageDataSource implements DataSource {
                                         }
 
                                         // 重新计算当前行偏移量
-                                        int offsetOfRow = rowIdx++ * PAGE_ROW_SIZE;
+                                        int offsetOfRow = ++rowIdx * PAGE_ROW_SIZE;
                                         dataBuffer.position(offsetOfRow);
 
                                         break;
@@ -292,7 +297,15 @@ public class PageDataSource implements DataSource {
 
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
-                        page.readCount.set(0);
+                        page.readCount.set(rowIdx);
+
+                        if( page.isInit ) {
+                            // 对初始化的页面不需要累加页面编号
+                            page.pageNum += PAGE_TABLE_SIZE;
+                        } else {
+                            page.isInit = true;
+                        }
+
 
                         // 最后一步，别忘记更新下一次要替换的页码表号
                         nextSwitchPageTableIndex = (nextSwitchPageTableIndex + 1) % PAGE_TABLE_SIZE;
@@ -311,7 +324,6 @@ public class PageDataSource implements DataSource {
         pageSwitcher.setDaemon(true);
         pageSwitcher.start();
 
-        isEOF = true;
         log.info("PageDataSource(file:{}) was inited.", dataFile);
 
     }
