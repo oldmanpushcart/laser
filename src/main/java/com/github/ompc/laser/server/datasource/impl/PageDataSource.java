@@ -134,6 +134,9 @@ public class PageDataSource implements DataSource {
         if ( dec < 0 ) {
             log.info("debug for 0, page.pageNum={},pageNum={},lineNum={},dec={}",
                     new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum,dec});
+            while(!isEOF) {
+
+            }
             return new Row(-1, EMPTY_DATA);
         }
 
