@@ -128,11 +128,6 @@ public class PageDataSource implements DataSource {
 
         final Page page = pageTable[tableIdx];
 
-        if (lineNum > 10474513) {
-            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get()});
-        }
-
         // 计算页面内行号
         final int rowNum = lineNum % PAGE_ROWS_NUM;
 
@@ -142,6 +137,11 @@ public class PageDataSource implements DataSource {
         if( page.byteCount.get() < offsetOfRow ) {
             // 自旋出来一看,我操,早已到达EOF
             return new Row(-1, EMPTY_DATA);
+        }
+
+        if (lineNum > 10474513) {
+            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get()});
         }
 
         final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
