@@ -125,12 +125,12 @@ public class PageDataSource implements DataSource {
 
         final Page page = pageTable[tableIdx];
 
-        page.readCount.decrementAndGet();
-
         if( page.isEmpty() ) {
             // 自旋出来一看,我操,早已到达EOF
             return new Row(-1, EMPTY_DATA);
         }
+
+        page.readCount.decrementAndGet();
 
         if (lineNum > 10474513) {
             log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
