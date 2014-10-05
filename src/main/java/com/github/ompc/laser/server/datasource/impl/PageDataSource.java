@@ -86,61 +86,50 @@ public class PageDataSource implements DataSource {
     @Override
     public Row getRow() throws IOException {
 
-        if (isEOF) {
-            // 获取上一个行号
-            final int lastLineNum = lineCounter.get();
-            final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
-            final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
-            if (pageTable[lastTableIdx].isLast
-                    && pageTable[lastTableIdx].isEmpty()) {
-                // 到达EOF
+        // 先找到当前页,并判断当前页是否已完结
+        // 如果当前页是最后一页,则直接返回EOF
+        // 如果当前页不是最后一页,则通知切换者
+
+        final int lastLineNum = lineCounter.get();
+        final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
+        final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
+        final Page lastPage = pageTable[lastTableIdx];
+        if (lastPage.isEmpty()) {
+
+            if (lastPage.isLast) {
                 return new Row(-1, EMPTY_DATA);
+            } else {
+                pageSwitchLock.lock();
+                try {
+                    pageSwitchWakeupCondition.signal();
+                } finally {
+                    pageSwitchLock.unlock();
+                }
             }
+
         }
 
+        // line ++
+        // read --
 
-        // 获取行号并跳动
         final int lineNum = lineCounter.getAndIncrement();
-
-        // 计算页码
         final int pageNum = lineNum / PAGE_ROWS_NUM;
-
-        // 计算页码表位置
         final int tableIdx = pageNum % PAGE_TABLE_SIZE;
-
-        boolean isLog = true;
         while (pageTable[tableIdx].isLocked
                 && pageTable[tableIdx].pageNum != pageNum) {
             // TODO : 优化自旋锁
             Thread.yield();
-            if (isLog) {
-                log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
-            }
-            isLog = false;
-
             // 如果页码表中当前位置所存放的页面编码对应不上
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
         }
 
         final Page page = pageTable[tableIdx];
 
-        if( page.isEmpty() ) {
-            // 自旋出来一看,我操,早已到达EOF
-            return new Row(-1, EMPTY_DATA);
+        if (page.readCount.decrementAndGet() == 0) {
+
         }
 
-        page.readCount.decrementAndGet();
-
-        if (lineNum > 10474513) {
-            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get()});
-        }
-
-        // 计算页面内行号
         final int rowNum = lineNum % PAGE_ROWS_NUM;
-
-        // 当前行偏移量
         final int offsetOfRow = rowNum * PAGE_ROW_SIZE;
 
         final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
@@ -148,25 +137,8 @@ public class PageDataSource implements DataSource {
         final byte[] data = new byte[validByteCount];
         byteBuffer.get(data);
 
-        // 判断一页是否读完,读完后需要通知切换者切换页面
-        if (page.isEmpty()) {
-            page.isLocked = true;
-            if (page.isLast) {
-                log.info("debug page.isLast, signal swicher, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
-                isEOF = true;
-            }
-            pageSwitchLock.lock();
-            try {
-                log.info("debug page.isEmpty, signal swicher, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
-                pageSwitchWakeupCondition.signal();
-            } finally {
-                pageSwitchLock.unlock();
-            }
-        }
-
         return new Row(lineNum, data);
+
 
     }
 
