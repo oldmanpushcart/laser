@@ -27,6 +27,7 @@ import static java.lang.Thread.currentThread;
 /**
  * 服务端
  * Created by vlinux on 14-9-29.
+ * @deprecated 已经被NioLaserServer所代替
  */
 public class LaserServer {
 

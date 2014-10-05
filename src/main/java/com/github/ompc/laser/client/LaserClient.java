@@ -24,6 +24,7 @@ import static com.github.ompc.laser.common.SocketUtils.write;
 /**
  * 客户端
  * Created by vlinux on 14-9-30.
+ * @deprecated 已经被NioLaserClient所代替
  */
 public class LaserClient {
 

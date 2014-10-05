@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 同步阻塞数据源
  * Created by vlinux on 14-9-21.
+ * @deprecated 性能不行
  */
 public class BlockDataSource implements DataSource {
 

@@ -10,6 +10,7 @@ import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.impl.BucketDataPersistence;
 import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
+import com.github.ompc.laser.server.datasource.impl.PageDataPersistence;
 
 import java.io.File;
 import java.io.IOException;
@@ -152,7 +153,10 @@ public class LaserLauncher {
             t.setDaemon(true);
             return t;
         });
-        final DataPersistence dataPersistence = new BucketDataPersistence(configer.getDataFile());
+        final DataPersistence dataPersistence
+                // = new BucketDataPersistence(configer.getDataFile())
+                = new PageDataPersistence(configer.getDataFile())
+                ;
         dataPersistence.init();
 
         // 建立链接
@@ -196,6 +200,7 @@ public class LaserLauncher {
 
     /**
      * 启动NIO服务器
+     *
      * @param args
      * @throws IOException
      * @throws InterruptedException
@@ -209,7 +214,7 @@ public class LaserLauncher {
 
         final DataSource dataSource
                 = new MappingDataSource(configer.getDataFile());
-                // = new BlockDataSource(configer.getDataFile());
+        // = new BlockDataSource(configer.getDataFile());
         dataSource.init();
 
         final CountDownLatch countDown = new CountDownLatch(1);//read&write

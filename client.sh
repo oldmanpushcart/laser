@@ -6,8 +6,8 @@ typeset RESULT_DATAFILE_PATH=${3}
 
 java \
     -XX:+UseBiasedLocking\
-    -Xmx8G \
-    -Xms8G \
+    -Xmx4G \
+    -Xms4G \
     -Xmn2G \
     -jar ./target/laser-jar-with-dependencies.jar 'nioclient' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
 

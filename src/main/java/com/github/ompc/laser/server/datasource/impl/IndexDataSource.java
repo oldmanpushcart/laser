@@ -19,6 +19,7 @@ import static java.lang.System.arraycopy;
 /**
  * 索引数据源
  * Created by vlinux on 14-10-4.
+ * @deprecated 性能不行
  */
 public class IndexDataSource implements DataSource {
 
