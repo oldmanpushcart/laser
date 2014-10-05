@@ -48,7 +48,7 @@ public class PageDataSource implements DataSource {
      * 页行数<br/>
      * 一页中总共有几行
      */
-    private final int PAGE_ROWS_NUM = 1000000;
+    private final int PAGE_ROWS_NUM = 2000000;
 
     /*
      * 页码表大小<br/>
@@ -120,7 +120,9 @@ public class PageDataSource implements DataSource {
 
         while (pageTable[tableIdx].pageNum != pageNum) {
             // TODO : 优化自旋锁
-            log.info("debug for spin, page.pageNum={},pageNum={}", pageTable[tableIdx].pageNum, pageNum);
+            Thread.yield();
+//            log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
+//                    new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
             // 如果页码表中当前位置所存放的页面编码对应不上
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
         }
