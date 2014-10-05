@@ -214,9 +214,9 @@ public class LaserLauncher {
         final LaserOptions options = new LaserOptions(new File(args[3]));
 
         final DataSource dataSource
-                = new MappingDataSource(configer.getDataFile())
+                // = new MappingDataSource(configer.getDataFile())
                 // = new BlockDataSource(configer.getDataFile())
-                // = new PageDataSource(configer.getDataFile())
+                = new PageDataSource(configer.getDataFile())
                 ;
         dataSource.init();
 
