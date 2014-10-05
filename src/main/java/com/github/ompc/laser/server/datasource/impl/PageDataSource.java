@@ -121,12 +121,13 @@ public class PageDataSource implements DataSource {
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
         }
 
-        if( lineNum > 10474520 ) {
-            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
-        }
-
         final Page page = pageTable[tableIdx];
+
+        if( lineNum > 10474520
+                && lineNum <= 10474520+2) {
+            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.isEmpty={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum,page.isLast, page.isEmpty()});
+        }
 
         // 计算页面内行号
         final int rowNum = lineNum % PAGE_ROWS_NUM;
