@@ -98,17 +98,17 @@ public class PageDataSource implements DataSource {
             }
 
             final int readCount = page.readCount.get();
-            final int offsetOfRow = readCount * PAGE_ROW_SIZE;
 
+            if( !page.readCount.compareAndSet(readCount, readCount+1) ) {
+                continue;
+            }
+
+            final int offsetOfRow = readCount * PAGE_ROW_SIZE;
             final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
             final int lineNum = byteBuffer.getInt();
             final int validByteCount = byteBuffer.getInt();
             final byte[] data = new byte[validByteCount];
             byteBuffer.get(data);
-
-            if( !page.readCount.compareAndSet(readCount, readCount+1) ) {
-                continue;
-            }
 
             if( !page.isLast
                     && page.isEmpty()) {
