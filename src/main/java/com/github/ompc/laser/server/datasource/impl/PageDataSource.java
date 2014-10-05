@@ -128,7 +128,8 @@ public class PageDataSource implements DataSource {
         final Page page = pageTable[tableIdx];
 
         if (page.readCount.decrementAndGet() == 0) {
-
+            log.info("debug for 0, page.pageNum={},pageNum={},lineNum={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
         }
 
         final int rowNum = lineNum % PAGE_ROWS_NUM;
