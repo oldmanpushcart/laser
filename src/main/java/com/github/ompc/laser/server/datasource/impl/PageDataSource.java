@@ -90,11 +90,7 @@ public class PageDataSource implements DataSource {
 
         while( true ) {
 
-            if( null == currentPage ) {
-                currentPage = pageTable[0];
-            }
-
-            final Page page = currentPage;
+            final Page page = currentPage == null?pageTable[0]:currentPage;
 
             if( page.isLast
                     && page.isEmpty()) {
@@ -116,7 +112,7 @@ public class PageDataSource implements DataSource {
 
             if( !page.isLast
                     && page.isEmpty()) {
-                final int nextPageIdx = (currentPage.pageNum + 1) % PAGE_TABLE_SIZE;
+                final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
                 currentPage = pageTable[nextPageIdx];
                 pageSwitchLock.lock();
                 try {
