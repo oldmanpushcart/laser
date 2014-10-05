@@ -127,7 +127,7 @@ public class PageDataSource implements DataSource {
                 final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
                 while( pageTable[nextPageIdx].pageNum != page.pageNum+1 ) {
                     // spin for switch
-                    log.info("debug for nextPageIdx.pageNum={},page.pageNum+1={}",(pageTable[nextPageIdx].pageNum),(page.pageNum+1));
+//                    log.info("debug for nextPageIdx.pageNum={},page.pageNum+1={}",(pageTable[nextPageIdx].pageNum),(page.pageNum+1));
                     continue;
                 }
                 currentPage = pageTable[nextPageIdx];
