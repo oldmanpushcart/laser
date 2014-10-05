@@ -55,7 +55,7 @@ public class PageDataSource implements DataSource {
      * 页码表大小<br/>
      * 一共有几页
      */
-    private final int PAGE_TABLE_SIZE = 10;
+    private final int PAGE_TABLE_SIZE = 12;
 
     /*
      * 页码表
@@ -163,6 +163,10 @@ public class PageDataSource implements DataSource {
             pageTable[i] = page;
         }
 
+        // 并发将文件映射到内存中
+
+
+
         /*
          * 页面切换者<br/>
          * 切换页码表中已完成的页面
@@ -233,7 +237,7 @@ public class PageDataSource implements DataSource {
                                 }
 
                                 if (fixLength > 0) {
-                                    mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength).force();
+                                    mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength);
                                 }
                             }
 
