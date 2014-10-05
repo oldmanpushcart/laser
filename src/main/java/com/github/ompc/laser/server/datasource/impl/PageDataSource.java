@@ -91,13 +91,12 @@ public class PageDataSource implements DataSource {
         while( true ) {
 
             final Page page = currentPage == null?pageTable[0]:currentPage;
+            final int readCount = page.readCount.get();
 
             if( page.isLast
                     && page.isEmpty()) {
                 return new Row(-1, EMPTY_DATA);
             }
-
-            final int readCount = page.readCount.get();
 
             if( !page.readCount.compareAndSet(readCount, readCount+1) ) {
                 continue;
