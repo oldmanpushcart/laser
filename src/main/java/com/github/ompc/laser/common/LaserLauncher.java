@@ -155,8 +155,8 @@ public class LaserLauncher {
             return t;
         });
         final DataPersistence dataPersistence
-                // = new BucketDataPersistence(configer.getDataFile())
-                = new PageDataPersistence(configer.getDataFile())
+                = new BucketDataPersistence(configer.getDataFile())
+                // = new PageDataPersistence(configer.getDataFile())
                 ;
         dataPersistence.init();
 
