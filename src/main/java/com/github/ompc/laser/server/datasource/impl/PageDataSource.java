@@ -18,7 +18,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Thread.currentThread;
 import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
-import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 
 /**
  * 分页数据源
@@ -49,7 +48,7 @@ public class PageDataSource implements DataSource {
      * 页行数<br/>
      * 一页中总共有几行
      */
-    private final int PAGE_ROWS_NUM = 100000;
+    private final int PAGE_ROWS_NUM = 500;
 
     /*
      * 页码表大小<br/>
@@ -142,7 +141,7 @@ public class PageDataSource implements DataSource {
 
         // 判断一页是否读完,读完后需要通知切换者切换页面
         if (page.isEmpty()) {
-            if( page.isLast ) {
+            if (page.isLast) {
                 isEOF = true;
             }
             pageSwitchLock.lock();
@@ -223,7 +222,8 @@ public class PageDataSource implements DataSource {
                         final ByteBuffer tempBuffer = ByteBuffer.allocate(PAGE_ROW_SIZE);
 
                         FILL_PAGE_LOOP:
-                        while (true) {
+                        while (rowIdx < PAGE_ROWS_NUM) {
+                            // 只有页面尚未被填满的时候才需要开始填充
 
                             if (null == mappedBuffer
                                     || !mappedBuffer.hasRemaining()) {
@@ -241,9 +241,10 @@ public class PageDataSource implements DataSource {
                                 // 需要关闭页面切换者
                                 // 将当前页标记为最后一页
                                 page.isLast = true;
-                                break FILL_PAGE_LOOP;
+//                                break FILL_PAGE_LOOP;
                             }
 
+                            DECODE_LOOP:
                             while (mappedBuffer.hasRemaining()) {
                                 switch (state) {
                                     case READ_D: {
@@ -269,17 +270,20 @@ public class PageDataSource implements DataSource {
 
                                         // 将临时缓存中的数据填入页中
                                         tempBuffer.flip();
-                                        dataBuffer.putInt(tempBuffer.limit());
+                                        final int dataLength = tempBuffer.limit();
+                                        dataBuffer.putInt(dataLength);
+                                        fileOffset += dataLength+2;
                                         dataBuffer.put(tempBuffer);
                                         tempBuffer.clear();
 
-                                        if (rowIdx == PAGE_ROWS_NUM) {
-                                            // 一页已经被填满,跳出本次页面填充动作
-                                            break FILL_PAGE_LOOP;
-                                        }
 
                                         // 重新计算当前行偏移量
-                                        int offsetOfRow = ++rowIdx * PAGE_ROW_SIZE;
+                                        if (++rowIdx == PAGE_ROWS_NUM) {
+                                            // 一页已经被填满,跳出本次页面填充动作
+                                            break DECODE_LOOP;
+                                        }
+
+                                        int offsetOfRow = rowIdx * PAGE_ROW_SIZE;
                                         dataBuffer.position(offsetOfRow);
 
                                         break;
@@ -291,15 +295,18 @@ public class PageDataSource implements DataSource {
 
                             }//while:MAPPED
 
-                            fileOffset += mappedBuffer.capacity();
-
                         }//while:FILL_PAGE_LOOP
 
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
                         page.readCount.set(rowIdx);
+//                        log.info("dbug for page.pageNum={} was switched.", page.pageNum);
 
-                        if( page.isInit ) {
+                        if (fileOffset == fileSize) {
+                            page.isLast = true;
+                        }
+
+                        if (page.isInit) {
                             // 对初始化的页面不需要累加页面编号
                             page.pageNum += PAGE_TABLE_SIZE;
                         } else {
