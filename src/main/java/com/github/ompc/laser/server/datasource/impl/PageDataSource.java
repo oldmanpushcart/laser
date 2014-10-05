@@ -103,6 +103,8 @@ public class PageDataSource implements DataSource {
             }
 
             final int offsetOfRow = readCount * PAGE_ROW_SIZE;
+            log.info("page.pageNum={},offsetOfRow={},readCount={},page.rowCount={}",
+                    new Object[]{page.pageNum,offsetOfRow,readCount,page.rowCount});
             final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
             final int lineNum = byteBuffer.getInt();
             final int validByteCount = byteBuffer.getInt();
