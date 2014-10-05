@@ -38,7 +38,7 @@ public class PageDataSource implements DataSource {
     /*
      * 缓存页大小,要求是4K倍数
      */
-    private final static int BUFFER_SIZE = 512 * 1024 * 1024;
+    private final static int BUFFER_SIZE = 256 * 1024 * 1024;
 
     /*
      * 页行大小<br/>
@@ -50,13 +50,13 @@ public class PageDataSource implements DataSource {
      * 页行数<br/>
      * 一页中总共有几行
      */
-    private final int PAGE_ROWS_NUM = 2000000;
+    private final int PAGE_ROWS_NUM = 1000000;
 
     /*
      * 页码表大小<br/>
      * 一共有几页
      */
-    private final int PAGE_TABLE_SIZE = 5;
+    private final int PAGE_TABLE_SIZE = 10;
 
     /*
      * 页码表
