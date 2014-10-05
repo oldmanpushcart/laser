@@ -267,6 +267,9 @@ public class PageDataPersistence implements DataPersistence {
     @Override
     public void flush() throws IOException {
 
+        // 标记数据源为刷新状态
+        isFlushFlag = true;
+
         pageSwitchLock.lock();
         try {
             // 唤醒页面切换者
@@ -274,9 +277,6 @@ public class PageDataPersistence implements DataPersistence {
         } finally {
             pageSwitchLock.unlock();
         }
-
-        // 标记数据源为刷新状态
-        isFlushFlag = true;
 
         try {
             // 等待页面切换者将所有页码表中数据都刷入文件缓存中
