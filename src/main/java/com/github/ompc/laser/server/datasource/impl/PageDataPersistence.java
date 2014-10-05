@@ -291,7 +291,7 @@ public class PageDataPersistence implements DataPersistence {
         }
 
         // 将文件缓存到磁盘
-        waitingFlushBufferMap.forEach((k, v) -> {v.force();log.info("k={} was forced.",k);});
+        waitingFlushBufferMap.forEach((k, v) -> {v.force();log.info("k={} was forced. size={}",k,v.capacity());});
         log.info("PageDataPersistence(file:{}) was flushed.", dataFile);
 
     }
