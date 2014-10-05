@@ -87,14 +87,16 @@ public class PageDataSource implements DataSource {
     @Override
     public Row getRow() throws IOException {
 
-        // 获取上一个行号
-        final int lastLineNum = lineCounter.get();
-        final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
-        final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
-        if( pageTable[lastTableIdx].isLast
-                && pageTable[lastTableIdx].isEmpty()) {
-            // 到达EOF
-            return new Row(-1, EMPTY_DATA);
+        if( isEOF ) {
+            // 获取上一个行号
+            final int lastLineNum = lineCounter.get();
+            final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
+            final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
+            if( pageTable[lastTableIdx].isLast
+                    && pageTable[lastTableIdx].isEmpty()) {
+                // 到达EOF
+                return new Row(-1, EMPTY_DATA);
+            }
         }
 
 
