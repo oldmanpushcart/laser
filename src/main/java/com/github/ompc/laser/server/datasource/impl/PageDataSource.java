@@ -309,6 +309,7 @@ public class PageDataSource implements DataSource {
 
                         if (fileOffset == fileSize) {
                             page.isLast = true;
+                            log.info("page.pageNum={} is last, page.readCount={}", page.pageNum, page.readCount.get());
                         }
 
                         if (page.isInit) {
@@ -388,7 +389,7 @@ public class PageDataSource implements DataSource {
          * @return
          */
         boolean isEmpty() {
-            return readCount.get() <= 0;
+            return readCount.get() == 0;
         }
 
     }
