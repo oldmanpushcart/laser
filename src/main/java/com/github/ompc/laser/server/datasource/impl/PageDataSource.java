@@ -83,25 +83,37 @@ public class PageDataSource implements DataSource {
         this.dataFile = dataFile;
     }
 
+    private volatile Page currentPage = null;
+
     @Override
     public Row getRow() throws IOException {
 
-        // 先找到当前页,并判断当前页是否已完结
-        // 如果当前页是最后一页,则直接返回EOF
-        // 如果当前页不是最后一页,则通知切换者
+        while( true ) {
 
-        final int lastLineNum = lineCounter.get();
-        final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
-        final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
-        final Page lastPage = pageTable[lastTableIdx];
-        if (lastPage.isEmpty()) {
+            final Page page = currentPage;
 
-            if (lastPage.isLast) {
-                while(!isEOF) {
-
-                }
+            if( page.isLast
+                    && page.isEmpty()) {
                 return new Row(-1, EMPTY_DATA);
-            } else {
+            }
+
+            final int readCount = page.readCount.get();
+            final int offsetOfRow = readCount * PAGE_ROW_SIZE;
+
+            final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
+            final int lineNum = byteBuffer.getInt();
+            final int validByteCount = byteBuffer.getInt();
+            final byte[] data = new byte[validByteCount];
+            byteBuffer.get(data);
+
+            if( !page.readCount.compareAndSet(readCount, readCount+1) ) {
+                continue;
+            }
+
+            if( !page.isLast
+                    && page.isEmpty()) {
+                final int nextPageIdx = (currentPage.pageNum + 1) % PAGE_TABLE_SIZE;
+                currentPage = pageTable[nextPageIdx];
                 pageSwitchLock.lock();
                 try {
                     pageSwitchWakeupCondition.signal();
@@ -110,58 +122,16 @@ public class PageDataSource implements DataSource {
                 }
             }
 
-        }
-
-        // line ++
-        // read --
-
-        final int lineNum = lineCounter.getAndIncrement();
-        final int pageNum = lineNum / PAGE_ROWS_NUM;
-        final int tableIdx = pageNum % PAGE_TABLE_SIZE;
-        while (pageTable[tableIdx].isLocked
-                && pageTable[tableIdx].pageNum != pageNum) {
-            // TODO : 优化自旋锁
-            Thread.yield();
-            // 如果页码表中当前位置所存放的页面编码对应不上
-            // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
-            log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
-        }
-
-        final Page page = pageTable[tableIdx];
-
-        while(true) {
-            final int readCount = page.readCount.get();
-            if( readCount < 0 ) {
-                log.info("debug for 0, page.pageNum={},pageNum={},lineNum={},readCount={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum,readCount});
-                while(!isEOF) {
-
-                }
-
-                return new Row(-1, EMPTY_DATA);
+            if( page.isLast
+                    && page.isEmpty()) {
+                isEOF = true;
             }
-            if( !page.readCount.compareAndSet(readCount, readCount-1) ) {
-                continue;
-            }
-            break;
+
+            return new Row(lineNum, data);
+
         }
 
-        final int rowNum = lineNum % PAGE_ROWS_NUM;
-        final int offsetOfRow = rowNum * PAGE_ROW_SIZE;
 
-        final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
-        final int validByteCount = byteBuffer.getInt();
-        final byte[] data = new byte[validByteCount];
-        byteBuffer.get(data);
-
-
-        if( page.isLast
-                && page.isEmpty()) {
-            isEOF = true;
-        }
-
-        return new Row(lineNum, data);
 
 
     }
@@ -196,6 +166,9 @@ public class PageDataSource implements DataSource {
 
                 // 文件整体大小
                 final long fileSize = fileChannel.size();
+
+                // 行号计数器
+                int lineCounter = 0;
 
                 // 文件缓存
                 MappedByteBuffer mappedBuffer = null;
@@ -291,6 +264,7 @@ public class PageDataSource implements DataSource {
                                         // 将临时缓存中的数据填入页中
                                         tempBuffer.flip();
                                         final int dataLength = tempBuffer.limit();
+                                        dataBuffer.putInt(lineCounter++);
                                         dataBuffer.putInt(dataLength);
                                         dataBuffer.put(tempBuffer);
                                         tempBuffer.clear();
@@ -318,7 +292,7 @@ public class PageDataSource implements DataSource {
 
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
-                        page.readCount.set(rowIdx);
+                        page.readCount.set(0);
                         log.info("page.pageNum={} was switched. fileOffset={},fileSize={},page.rowCount={};",
                                 new Object[]{page.pageNum, fileOffset, fileSize, page.rowCount});
 
@@ -411,7 +385,7 @@ public class PageDataSource implements DataSource {
          * @return
          */
         boolean isEmpty() {
-            return readCount.get() <= 0;
+            return readCount.get() == rowCount;
         }
 
     }
