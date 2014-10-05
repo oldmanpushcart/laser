@@ -129,8 +129,7 @@ public class PageDataSource implements DataSource {
             return new Row(-1, EMPTY_DATA);
         }
 
-        if (lineNum > 10474520
-                && lineNum <= 10474520 + 2) {
+        if (lineNum > 10474520) {
             log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
                     new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get()});
         }
