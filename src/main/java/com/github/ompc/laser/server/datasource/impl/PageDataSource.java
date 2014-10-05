@@ -254,6 +254,7 @@ public class PageDataSource implements DataSource {
                                 switch (state) {
                                     case READ_D: {
                                         final byte b = mappedBuffer.get();
+                                        fileOffset++;
                                         if (b == '\r') {
                                             state = DecodeLineState.READ_R;
                                         } else {
@@ -264,6 +265,7 @@ public class PageDataSource implements DataSource {
 
                                     case READ_R: {
                                         final byte b = mappedBuffer.get();
+                                        fileOffset++;
                                         if (b != '\n') {
                                             throw new IOException("illegal format, \\n did not behind \\r, b=" + b);
                                         }
@@ -277,7 +279,6 @@ public class PageDataSource implements DataSource {
                                         tempBuffer.flip();
                                         final int dataLength = tempBuffer.limit();
                                         dataBuffer.putInt(dataLength);
-                                        fileOffset += dataLength + 2;
                                         dataBuffer.put(tempBuffer);
                                         tempBuffer.clear();
 
