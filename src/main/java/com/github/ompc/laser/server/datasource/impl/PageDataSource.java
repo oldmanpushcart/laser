@@ -150,10 +150,14 @@ public class PageDataSource implements DataSource {
         // 判断一页是否读完,读完后需要通知切换者切换页面
         if (page.isEmpty()) {
             if (page.isLast) {
+                log.info("debug page.isLast, signal swicher, page.pageNum={},pageNum={},lineNum={}",
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
                 isEOF = true;
             }
             pageSwitchLock.lock();
             try {
+                log.info("debug page.isEmpty, signal swicher, page.pageNum={},pageNum={},lineNum={}",
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
                 pageSwitchWakeupCondition.signal();
             } finally {
                 pageSwitchLock.unlock();
