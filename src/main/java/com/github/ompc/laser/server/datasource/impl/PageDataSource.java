@@ -48,7 +48,7 @@ public class PageDataSource implements DataSource {
      * 页行数<br/>
      * 一页中总共有几行
      */
-    private final int PAGE_ROWS_NUM = 100000;
+    private final int PAGE_ROWS_NUM = 1000000;
 
     /*
      * 页码表大小<br/>
@@ -88,7 +88,7 @@ public class PageDataSource implements DataSource {
 
         // 判断是否已经到EOF
         if (isEOF) {
-            final int lineNum = lineCounter.get();
+            final int lineNum = lineCounter.get() - 1;
 
             // 计算页码
             final int pageNum = lineNum / PAGE_ROWS_NUM;
@@ -222,7 +222,7 @@ public class PageDataSource implements DataSource {
                         final ByteBuffer tempBuffer = ByteBuffer.allocate(PAGE_ROW_SIZE);
 
                         FILL_PAGE_LOOP:
-                        while (rowIdx < PAGE_ROWS_NUM) {
+                        while (true) {
                             // 只有页面尚未被填满的时候才需要开始填充
 
                             if (null == mappedBuffer
@@ -241,7 +241,7 @@ public class PageDataSource implements DataSource {
                                 // 需要关闭页面切换者
                                 // 将当前页标记为最后一页
                                 page.isLast = true;
-//                                break FILL_PAGE_LOOP;
+                                break FILL_PAGE_LOOP;
                             }
 
                             DECODE_LOOP:
@@ -280,7 +280,7 @@ public class PageDataSource implements DataSource {
                                         // 重新计算当前行偏移量
                                         if (++rowIdx == PAGE_ROWS_NUM) {
                                             // 一页已经被填满,跳出本次页面填充动作
-                                            break DECODE_LOOP;
+                                            break FILL_PAGE_LOOP;
                                         }
 
                                         int offsetOfRow = rowIdx * PAGE_ROW_SIZE;
@@ -300,7 +300,7 @@ public class PageDataSource implements DataSource {
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
                         page.readCount.set(rowIdx);
-//                        log.info("dbug for page.pageNum={} was switched.", page.pageNum);
+                        log.info("dbug for page.pageNum={} was switched.", page.pageNum);
 
                         if (fileOffset == fileSize) {
                             page.isLast = true;
