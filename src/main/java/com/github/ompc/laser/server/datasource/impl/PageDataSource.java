@@ -385,7 +385,7 @@ public class PageDataSource implements DataSource {
          * @return
          */
         boolean isEmpty() {
-            return readCount.get() == rowCount;
+            return readCount.get() >= rowCount;
         }
 
     }
