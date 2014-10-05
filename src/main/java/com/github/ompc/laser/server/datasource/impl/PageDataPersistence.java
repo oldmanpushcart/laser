@@ -111,7 +111,7 @@ public class PageDataPersistence implements DataPersistence {
         final Page page = pageTable[tableIdx];
 
         // 计算页面内行号
-        final int rowNum = row.getLineNum() % PAGE_ROWS_NUM;
+        final int rowNum = lineNum % PAGE_ROWS_NUM;
 
         final byte[] bytesOfLineNum = String.valueOf(lineNum).getBytes();
 

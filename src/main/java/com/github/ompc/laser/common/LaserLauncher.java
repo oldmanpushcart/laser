@@ -11,6 +11,7 @@ import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.impl.BucketDataPersistence;
 import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
 import com.github.ompc.laser.server.datasource.impl.PageDataPersistence;
+import com.github.ompc.laser.server.datasource.impl.PageDataSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -155,8 +156,7 @@ public class LaserLauncher {
         });
         final DataPersistence dataPersistence
                 // = new BucketDataPersistence(configer.getDataFile())
-                = new PageDataPersistence(configer.getDataFile())
-                ;
+                = new PageDataPersistence(configer.getDataFile());
         dataPersistence.init();
 
         // 建立链接
@@ -213,8 +213,10 @@ public class LaserLauncher {
         final LaserOptions options = new LaserOptions(new File(args[3]));
 
         final DataSource dataSource
-                = new MappingDataSource(configer.getDataFile());
-        // = new BlockDataSource(configer.getDataFile());
+                // = new MappingDataSource(configer.getDataFile())
+                // = new BlockDataSource(configer.getDataFile())
+                = new PageDataSource(configer.getDataFile())
+                ;
         dataSource.init();
 
         final CountDownLatch countDown = new CountDownLatch(1);//read&write
