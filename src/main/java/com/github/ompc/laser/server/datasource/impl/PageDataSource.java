@@ -99,6 +99,10 @@ public class PageDataSource implements DataSource {
                 return new Row(-1, EMPTY_DATA);
             }
 
+            if( readCount == rowCount ) {
+                continue;
+            }
+
             if( !page.readCount.compareAndSet(readCount, readCount+1) ) {
                 continue;
             }
