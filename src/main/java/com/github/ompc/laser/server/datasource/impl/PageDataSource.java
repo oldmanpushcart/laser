@@ -146,15 +146,12 @@ public class PageDataSource implements DataSource {
         byteBuffer.get(data);
 
 
-        try {
-            return new Row(lineNum, data);
-        } finally {
-            if( page.isLast
-                    && page.isEmpty()) {
-                isEOF = true;
-            }
+        if( page.isLast
+                && page.isEmpty()) {
+            isEOF = true;
         }
 
+        return new Row(lineNum, data);
 
 
     }

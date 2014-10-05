@@ -286,7 +286,7 @@ public class PageDataPersistence implements DataPersistence {
         }
 
         // 将文件缓存到磁盘
-        waitingFlushBufferMap.forEach((k, v) -> v.force());
+        waitingFlushBufferMap.forEach((k, v) -> {v.force();log.info("k={} was forced.",k);});
         log.info("PageDataPersistence(file:{}) was flushed.", dataFile);
 
     }
@@ -312,7 +312,7 @@ public class PageDataPersistence implements DataPersistence {
         /*
          * 页码
          */
-        int pageNum;
+        volatile int pageNum;
 
         /*
          * 页面总行数
