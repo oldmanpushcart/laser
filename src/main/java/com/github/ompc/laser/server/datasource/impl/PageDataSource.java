@@ -90,7 +90,7 @@ public class PageDataSource implements DataSource {
 
         while( true ) {
 
-            final Page page = currentPage;
+            final Page page = currentPage == null?pageTable[0]:currentPage;
 
             if( page.isLast
                     && page.isEmpty()) {
