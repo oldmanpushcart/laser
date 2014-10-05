@@ -124,6 +124,10 @@ public class PageDataSource implements DataSource {
         }
 
         final Page page = pageTable[tableIdx];
+        if( page.isEmpty() ) {
+            // 自旋出来一看,我操,早已到达EOF
+            return new Row(-1, EMPTY_DATA);
+        }
 
         if (lineNum > 10474520
                 && lineNum <= 10474520 + 2) {
