@@ -97,6 +97,9 @@ public class PageDataSource implements DataSource {
         if (lastPage.isEmpty()) {
 
             if (lastPage.isLast) {
+                while(!isEOF) {
+
+                }
                 return new Row(-1, EMPTY_DATA);
             } else {
                 pageSwitchLock.lock();
