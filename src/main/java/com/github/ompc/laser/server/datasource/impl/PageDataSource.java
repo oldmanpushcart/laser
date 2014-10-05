@@ -363,7 +363,7 @@ public class PageDataSource implements DataSource {
         /*
          * 页码
          */
-        int pageNum;
+        volatile int pageNum;
 
         /*
          * 页面总行数
