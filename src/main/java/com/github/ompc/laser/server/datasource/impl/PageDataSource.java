@@ -86,73 +86,72 @@ public class PageDataSource implements DataSource {
     @Override
     public Row getRow() throws IOException {
 
-        while( true ) {
-            // 先找到当前页,并判断当前页是否已完结
-            // 如果当前页是最后一页,则直接返回EOF
-            // 如果当前页不是最后一页,则通知切换者
+        // 先找到当前页,并判断当前页是否已完结
+        // 如果当前页是最后一页,则直接返回EOF
+        // 如果当前页不是最后一页,则通知切换者
 
-            final int lastLineNum = lineCounter.get();
-            final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
-            final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
-            final Page lastPage = pageTable[lastTableIdx];
-            if (lastPage.isEmpty()) {
+        final int lastLineNum = lineCounter.get();
+        final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
+        final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
+        final Page lastPage = pageTable[lastTableIdx];
+        if (lastPage.isEmpty()) {
 
-                if (lastPage.isLast) {
-                    while(!isEOF) {
+            if (lastPage.isLast) {
+                while(!isEOF) {
 
-                    }
-                    return new Row(-1, EMPTY_DATA);
-                } else {
-                    pageSwitchLock.lock();
-                    try {
-                        pageSwitchWakeupCondition.signal();
-                    } finally {
-                        pageSwitchLock.unlock();
-                    }
                 }
-
+                return new Row(-1, EMPTY_DATA);
+            } else {
+                pageSwitchLock.lock();
+                try {
+                    pageSwitchWakeupCondition.signal();
+                } finally {
+                    pageSwitchLock.unlock();
+                }
             }
 
-            // line ++
-            // read --
-
-            final int lineNum = lineCounter.getAndIncrement();
-            final int pageNum = lineNum / PAGE_ROWS_NUM;
-            final int tableIdx = pageNum % PAGE_TABLE_SIZE;
-            while (pageTable[tableIdx].isLocked
-                    && pageTable[tableIdx].pageNum != pageNum) {
-                // TODO : 优化自旋锁
-                Thread.yield();
-                // 如果页码表中当前位置所存放的页面编码对应不上
-                // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
-                log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
-            }
-
-            final Page page = pageTable[tableIdx];
-
-            int dec = page.readCount.decrementAndGet();
-            if ( dec <= 0) {
-                log.info("debug for 0, page.pageNum={},pageNum={},lineNum={},dec={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum,dec});
-                continue;
-            }
-
-            final int rowNum = lineNum % PAGE_ROWS_NUM;
-            final int offsetOfRow = rowNum * PAGE_ROW_SIZE;
-
-            final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
-            final int validByteCount = byteBuffer.getInt();
-            final byte[] data = new byte[validByteCount];
-            byteBuffer.get(data);
-
-            if( page.isLast
-                    && page.isEmpty()) {
-                isEOF = true;
-            }
-
-            return new Row(lineNum, data);
         }
+
+        // line ++
+        // read --
+
+        final int lineNum = lineCounter.getAndIncrement();
+        final int pageNum = lineNum / PAGE_ROWS_NUM;
+        final int tableIdx = pageNum % PAGE_TABLE_SIZE;
+        while (pageTable[tableIdx].isLocked
+                && pageTable[tableIdx].pageNum != pageNum) {
+            // TODO : 优化自旋锁
+            Thread.yield();
+            // 如果页码表中当前位置所存放的页面编码对应不上
+            // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
+            log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
+        }
+
+        final Page page = pageTable[tableIdx];
+
+        int dec = page.readCount.decrementAndGet();
+        if ( dec < 0 ) {
+            log.info("debug for 0, page.pageNum={},pageNum={},lineNum={},dec={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum,dec});
+            return new Row(-1, EMPTY_DATA);
+        }
+
+        final int rowNum = lineNum % PAGE_ROWS_NUM;
+        final int offsetOfRow = rowNum * PAGE_ROW_SIZE;
+
+        final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
+        final int validByteCount = byteBuffer.getInt();
+        final byte[] data = new byte[validByteCount];
+        byteBuffer.get(data);
+
+        if( page.isLast
+                && page.isEmpty()) {
+            isEOF = true;
+        }
+
+        return new Row(lineNum, data);
+
 
     }
 
