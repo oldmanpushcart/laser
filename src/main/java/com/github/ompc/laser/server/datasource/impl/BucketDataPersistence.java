@@ -97,7 +97,7 @@ public class BucketDataPersistence implements DataPersistence {
                                 }
 
                                 if( null == row ) {
-                                    log.info("debug for null,rowIdx={}", rowIdx);
+                                    log.info("debug for null,rowIdx={},bucket.rowCount={}", rowIdx, bucket.rowCount);
                                 }
 
                                 buffer.put(String.valueOf(row.getLineNum()).getBytes());
