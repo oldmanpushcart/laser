@@ -121,6 +121,11 @@ public class PageDataSource implements DataSource {
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
         }
 
+        if( lineNum > 10474520 ) {
+            log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+        }
+
         final Page page = pageTable[tableIdx];
 
         // 计算页面内行号
