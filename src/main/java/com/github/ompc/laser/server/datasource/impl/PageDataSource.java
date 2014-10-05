@@ -134,7 +134,7 @@ public class PageDataSource implements DataSource {
             final int readCount = page.readCount.get();
             if( readCount <= 0 ) {
                 log.info("debug for 0, page.pageNum={},pageNum={},lineNum={},readCount={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum},readCount);
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum,readCount});
                 while(!isEOF) {
 
                 }
