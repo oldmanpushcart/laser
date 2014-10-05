@@ -143,6 +143,11 @@ public class PageDataSource implements DataSource {
         final byte[] data = new byte[validByteCount];
         byteBuffer.get(data);
 
+        if( page.isLast
+                && page.isEmpty()) {
+            isEOF = true;
+        }
+
         return new Row(lineNum, data);
 
 
