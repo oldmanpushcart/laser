@@ -1,6 +1,5 @@
 package com.github.ompc.laser.server.datasource.impl;
 
-import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -87,12 +86,12 @@ public class PageDataSource implements DataSource {
     @Override
     public Row getRow() throws IOException {
 
-        if( isEOF ) {
+        if (isEOF) {
             // 获取上一个行号
             final int lastLineNum = lineCounter.get();
             final int lastPageNum = lastLineNum / PAGE_ROWS_NUM;
             final int lastTableIdx = lastPageNum % PAGE_TABLE_SIZE;
-            if( pageTable[lastTableIdx].isLast
+            if (pageTable[lastTableIdx].isLast
                     && pageTable[lastTableIdx].isEmpty()) {
                 // 到达EOF
                 return new Row(-1, EMPTY_DATA);
@@ -110,12 +109,13 @@ public class PageDataSource implements DataSource {
         final int tableIdx = pageNum % PAGE_TABLE_SIZE;
 
         boolean isLog = true;
-        while (pageTable[tableIdx].pageNum != pageNum) {
+        while (pageTable[tableIdx].isLocked
+                && pageTable[tableIdx].pageNum != pageNum) {
             // TODO : 优化自旋锁
             Thread.yield();
-            if( isLog ) {
+            if (isLog) {
                 log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
             }
             isLog = false;
 
@@ -125,10 +125,10 @@ public class PageDataSource implements DataSource {
 
         final Page page = pageTable[tableIdx];
 
-        if( lineNum > 10474520
-                && lineNum <= 10474520+2) {
+        if (lineNum > 10474520
+                && lineNum <= 10474520 + 2) {
             log.info("debug for lineNum overflow, page.pageNum={},pageNum={},lineNum={},page.isLast={},page.readCount={}",
-                    new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum,page.isLast, page.readCount.get()});
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum, page.isLast, page.readCount.get()});
         }
 
         // 计算页面内行号
@@ -146,15 +146,16 @@ public class PageDataSource implements DataSource {
 
         // 判断一页是否读完,读完后需要通知切换者切换页面
         if (page.isEmpty()) {
+            page.isLocked = true;
             if (page.isLast) {
                 log.info("debug page.isLast, signal swicher, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
                 isEOF = true;
             }
             pageSwitchLock.lock();
             try {
                 log.info("debug page.isEmpty, signal swicher, page.pageNum={},pageNum={},lineNum={}",
-                        new Object[]{pageTable[tableIdx].pageNum, pageNum,lineNum});
+                        new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
                 pageSwitchWakeupCondition.signal();
             } finally {
                 pageSwitchLock.unlock();
@@ -240,11 +241,11 @@ public class PageDataSource implements DataSource {
                                 // 修正映射长度
                                 final long fixLength = (fileOffset + BUFFER_SIZE >= fileSize) ? fileSize - fileOffset : BUFFER_SIZE;
 
-                                if( null != mappedBuffer ) {
+                                if (null != mappedBuffer) {
                                     unmap(mappedBuffer);
                                 }
 
-                                if( fixLength > 0 ) {
+                                if (fixLength > 0) {
                                     mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength).force();
                                 }
                             }
@@ -315,7 +316,7 @@ public class PageDataSource implements DataSource {
                         page.rowCount = rowIdx;
                         page.readCount.set(rowIdx);
                         log.info("page.pageNum={} was switched. fileOffset={},fileSize={},page.rowCount={};",
-                                new Object[]{page.pageNum, fileOffset, fileSize,page.rowCount});
+                                new Object[]{page.pageNum, fileOffset, fileSize, page.rowCount});
 
                         if (fileOffset == fileSize) {
                             page.isLast = true;
@@ -328,6 +329,8 @@ public class PageDataSource implements DataSource {
                         } else {
                             page.isInit = true;
                         }
+
+                        page.isLocked = false;
 
 
                         // 最后一步，别忘记更新下一次要替换的页码表号
@@ -365,7 +368,7 @@ public class PageDataSource implements DataSource {
         /*
          * 页码
          */
-        volatile int pageNum;
+        int pageNum;
 
         /*
          * 页面总行数
@@ -387,6 +390,11 @@ public class PageDataSource implements DataSource {
          * 因为第一次读取数据的时候需要页面切换者进行读取,可以说是预加载
          */
         volatile boolean isInit = false;
+
+        /*
+         * 标记当前页是否被锁定,被锁定的页面只允许页面切换者切换完成后才能读取
+         */
+        volatile boolean isLocked = false;
 
         /*
          * 数据段
