@@ -102,7 +102,7 @@ public class PageDataPersistence implements DataPersistence {
         final int tableIdx = pageNum % PAGE_TABLE_SIZE;
 
         while (pageTable[tableIdx].pageNum != pageNum) {
-            // TODO : 优化自旋锁
+            Thread.yield();
             // 如果页码表中当前位置所存放的页面编码对应不上
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
 //            log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
