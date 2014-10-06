@@ -76,7 +76,7 @@ public class PageDataSource implements DataSource {
      * 页面切换者锁
      */
     private final ReentrantLock pageSwitchLock = new ReentrantLock();
-    private final Condition pageSwitchWakeupCondition = pageSwitchLock.newCondition();
+    private final Condition pageSwitchWakeUpCondition = pageSwitchLock.newCondition();
 
 
     public PageDataSource(File dataFile) {
@@ -87,6 +87,10 @@ public class PageDataSource implements DataSource {
 
     @Override
     public Row getRow() throws IOException {
+
+        if( isEOF ) {
+            return new Row(-1, EMPTY_DATA);
+        }
 
         while( true ) {
 
@@ -115,25 +119,27 @@ public class PageDataSource implements DataSource {
             final byte[] data = new byte[validByteCount];
             byteBuffer.get(data);
 
-            if( !page.isLast
-                    && page.readCount.get() == rowCount) {
-                final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
-                while( pageTable[nextPageIdx].pageNum != page.pageNum+1 ) {
-                    // spin for switch
-                    continue;
-                }
-                currentPage = pageTable[nextPageIdx];
-                pageSwitchLock.lock();
-                try {
-                    pageSwitchWakeupCondition.signal();
-                } finally {
-                    pageSwitchLock.unlock();
-                }
-            }
+            if( page.readCount.get() == rowCount ) {
 
-            if( page.isLast
-                    && page.readCount.get() == rowCount) {
-                isEOF = true;
+                if( page.isLast ) {
+                    isEOF = true;
+                } else {
+
+                    pageSwitchLock.lock();
+                    try {
+                        pageSwitchWakeUpCondition.signal();
+                    } finally {
+                        pageSwitchLock.unlock();
+                    }
+
+                    final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
+                    while( pageTable[nextPageIdx].pageNum != page.pageNum+1 ) {
+                        // spin for switch
+                        continue;
+                    }
+                    currentPage = pageTable[nextPageIdx];
+                }
+
             }
 
             return new Row(lineNum, data);
@@ -192,14 +198,16 @@ public class PageDataSource implements DataSource {
                     // 1.顺序的更换页码
                     // 2.将文件缓存刷入页码
                     final Page page = pageTable[nextSwitchPageTableIndex];
+                    final int readCount = page.readCount.get();
 
                     if (page.isInit
-                            && !page.isEmpty()) {
+                            && readCount < page.rowCount) {
                         // 如果已经被初始化后的当前页还没被读完,休眠等待被唤醒
                         pageSwitchLock.lock();
                         try {
                             // 休眠100ms,或被唤醒
-                            pageSwitchWakeupCondition.await(100, TimeUnit.MILLISECONDS);
+                            pageSwitchWakeUpCondition.await(100, TimeUnit.MILLISECONDS);
+                            continue;
                         } catch (InterruptedException e) {
                             currentThread().interrupt();
                         } finally {
@@ -208,7 +216,7 @@ public class PageDataSource implements DataSource {
                     }
 
                     if (!page.isInit
-                            || page.isEmpty()) {
+                            || readCount == page.rowCount) {
 
                         final ByteBuffer dataBuffer = ByteBuffer.wrap(page.data);
 
@@ -317,9 +325,6 @@ public class PageDataSource implements DataSource {
                             page.isInit = true;
                         }
 
-                        page.isLocked = false;
-
-
                         // 最后一步，别忘记更新下一次要替换的页码表号
                         nextSwitchPageTableIndex = (nextSwitchPageTableIndex + 1) % PAGE_TABLE_SIZE;
 
@@ -360,7 +365,7 @@ public class PageDataSource implements DataSource {
         /*
          * 页面总行数
          */
-        int rowCount = 0;
+        volatile int rowCount = 0;
 
         /*
          * 已被读取行数
@@ -379,23 +384,9 @@ public class PageDataSource implements DataSource {
         volatile boolean isInit = false;
 
         /*
-         * 标记当前页是否被锁定,被锁定的页面只允许页面切换者切换完成后才能读取
-         */
-        volatile boolean isLocked = false;
-
-        /*
          * 数据段
          */
         byte[] data = new byte[PAGE_ROW_SIZE * PAGE_ROWS_NUM];
-
-        /**
-         * 判断当前页面是否已经被读完
-         *
-         * @return
-         */
-        boolean isEmpty() {
-            return readCount.get() >= rowCount;
-        }
 
     }
 

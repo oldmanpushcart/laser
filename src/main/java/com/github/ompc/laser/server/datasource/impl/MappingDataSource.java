@@ -20,6 +20,7 @@ import static java.lang.Runtime.getRuntime;
 /**
  * 内存映射数据源
  * Created by vlinux on 14-10-4.
+ * @deprecated 使用PageDataSource
  */
 public class MappingDataSource implements DataSource {
 
