@@ -4,7 +4,6 @@ import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.Contended;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +70,6 @@ public class PageDataSource implements DataSource {
     /*
      * 标记是否曾经有其他线程到达过EOF状态
      */
-    @Contended
     private volatile boolean isEOF = false;
 
     /*
@@ -85,7 +83,6 @@ public class PageDataSource implements DataSource {
         this.dataFile = dataFile;
     }
 
-    @Contended
     private volatile Page currentPage = null;
 
     /**
@@ -153,9 +150,9 @@ public class PageDataSource implements DataSource {
                         pageSwitchLock.unlock();
                     }
 
-                    final int pageNum = page.pageNum;
-                    final int nextPageIdx = (pageNum + 1) % PAGE_TABLE_SIZE;
-                    while (pageTable[nextPageIdx].pageNum != pageNum + 1) {
+                    final int paggNum = page.pageNum;
+                    final int nextPageIdx = (paggNum + 1) % PAGE_TABLE_SIZE;
+                    while (pageTable[nextPageIdx].pageNum != paggNum + 1) {
                         // spin for switch
                         Thread.yield();
                     }
@@ -387,25 +384,21 @@ public class PageDataSource implements DataSource {
         /*
          * 页码
          */
-        @Contended
         volatile int pageNum;
 
         /*
          * 页面总行数
          */
-        @Contended
         volatile int rowCount = 0;
 
         /*
          * 已被读取行数
          */
-        @Contended
         AtomicInteger readCount = new AtomicInteger(0);
 
         /*
          * 是否最后一页
          */
-        @Contended
         volatile boolean isLast = false;
 
         /*
