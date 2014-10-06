@@ -165,8 +165,6 @@ public class LaserLauncher {
                 = new PageDataPersistence(configer.getDataFile())
                 ;
 
-        log.info("debug for cost={}",(System.currentTimeMillis()-startTime));
-
         // 异步初始化数据源
         executorService.execute(()->{
 
