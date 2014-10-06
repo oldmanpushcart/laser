@@ -4,7 +4,6 @@ import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.Contended;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +65,6 @@ public class PageDataSource implements DataSource {
     /*
      * 标记是否曾经有其他线程到达过EOF状态
      */
-    @Contended
     private volatile boolean isEOF = false;
 
     /*
@@ -80,7 +78,6 @@ public class PageDataSource implements DataSource {
         this.dataFile = dataFile;
     }
 
-    @Contended
     private volatile Page currentPage = null;
 
     /**
@@ -377,7 +374,6 @@ public class PageDataSource implements DataSource {
     /**
      * 缓存页
      */
-    @Contended
     class Page {
 
         /*
