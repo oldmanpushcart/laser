@@ -133,7 +133,7 @@ public class PageDataPersistence implements DataPersistence {
                 .put(LINE_DELIMITER);
 
         // 更新页面数据
-        page.byteCount.addAndGet(validByteCount);
+//        page.byteCount.addAndGet(validByteCount);
 
         // 如果页面已被写满，则需要唤醒页面切换者
         if (page.rowCount.incrementAndGet() == PAGE_ROWS_NUM) {
