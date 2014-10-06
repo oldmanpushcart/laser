@@ -382,6 +382,7 @@ public class PageDataSource implements DataSource {
     /**
      * 缓存页
      */
+    @Contended
     class Page {
 
         /*
@@ -399,11 +400,13 @@ public class PageDataSource implements DataSource {
         /*
          * 已被读取行数
          */
+        @Contended
         AtomicInteger readCount = new AtomicInteger(0);
 
         /*
          * 是否最后一页
          */
+        @Contended
         volatile boolean isLast = false;
 
         /*

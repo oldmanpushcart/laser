@@ -305,6 +305,7 @@ public class PageDataPersistence implements DataPersistence {
      * <p>
      * 一页有10^6行
      */
+    @Contended
     class Page {
 
         /*
@@ -316,11 +317,13 @@ public class PageDataPersistence implements DataPersistence {
         /*
          * 页面总行数
          */
+        @Contended
         AtomicInteger rowCount = new AtomicInteger(0);
 
         /*
          * 页面总字节数
          */
+        @Contended
         AtomicLong byteCount = new AtomicLong(0);
 
         /*
