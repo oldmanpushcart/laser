@@ -16,7 +16,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 
 import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETDATA;
@@ -35,6 +37,7 @@ public class NioLaserClient {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final CountDownLatch countDown;
+    private final CyclicBarrier workCyclicBarrier;
     private final ExecutorService executorService;
     private final DataPersistence dataPersistence;
     private final ClientConfiger configer;
@@ -44,8 +47,9 @@ public class NioLaserClient {
     private volatile boolean isRunning = true;
 
 
-    public NioLaserClient(CountDownLatch countDown, ExecutorService executorService, DataPersistence dataPersistence, ClientConfiger configer, LaserOptions options) {
+    public NioLaserClient(CountDownLatch countDown, CyclicBarrier workCyclicBarrier, ExecutorService executorService, DataPersistence dataPersistence, ClientConfiger configer, LaserOptions options) {
         this.countDown = countDown;
+        this.workCyclicBarrier = workCyclicBarrier;
         this.executorService = executorService;
         this.dataPersistence = dataPersistence;
         this.configer = configer;
@@ -126,6 +130,12 @@ public class NioLaserClient {
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
                 while (isRunning) {
 
+                    try {
+                        workCyclicBarrier.await();
+                    } catch (Exception e) {
+                        log.warn("workCB await failed.", e);
+                    }
+
                     final GetDataReq req = new GetDataReq();
                     if (buffer.remaining() >= Integer.BYTES) {
                         buffer.putInt(req.getType());
@@ -192,6 +202,12 @@ public class NioLaserClient {
                 socketChannel.register(selector, OP_READ);
                 MAIN_LOOP:
                 while (isRunning) {
+
+                    try {
+                        workCyclicBarrier.await();
+                    } catch (Exception e) {
+                        log.warn("workCB await failed.", e);
+                    }
 
                     selector.select();
                     final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();

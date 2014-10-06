@@ -19,6 +19,7 @@ import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -149,6 +150,9 @@ public class LaserLauncher {
         final int worksNum = options.getClientWorkNumbers();
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
+
+        final CyclicBarrier workCyclicBarrier = new CyclicBarrier(worksNum*2);
+
         final ExecutorService executorService = Executors.newCachedThreadPool((r) -> {
             final Thread t = new Thread(r);
             t.setDaemon(true);
@@ -163,7 +167,7 @@ public class LaserLauncher {
         // 建立链接
         final Set<NioLaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
-            final NioLaserClient client = new NioLaserClient(countDown, executorService, dataPersistence, configer, options);
+            final NioLaserClient client = new NioLaserClient(countDown, workCyclicBarrier, executorService, dataPersistence, configer, options);
             client.connect();
             clients.add(client);
         }
