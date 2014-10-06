@@ -20,10 +20,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static java.lang.Runtime.getRuntime;
 import static java.lang.Thread.currentThread;
@@ -155,7 +152,7 @@ public class LaserLauncher {
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
 
-        final CyclicBarrier workCyclicBarrier = new CyclicBarrier(worksNum*2);
+        final CyclicBarrier workCyclicBarrier = new CyclicBarrier(worksNum*2+1);
 
         final ExecutorService executorService = Executors.newCachedThreadPool((r) -> {
             final Thread t = new Thread(r);
@@ -163,13 +160,27 @@ public class LaserLauncher {
             return t;
         });
 
-        long s = System.currentTimeMillis();
         final DataPersistence dataPersistence
                 // = new BucketDataPersistence(configer.getDataFile())
                 = new PageDataPersistence(configer.getDataFile())
                 ;
-        dataPersistence.init();
-        log.info("debug for cost={}",(System.currentTimeMillis()-s));
+
+        // 异步初始化数据源
+        executorService.execute(()->{
+
+            try {
+                dataPersistence.init();
+                try {
+                    workCyclicBarrier.await();
+                } catch (Exception e) {
+                    // ingore...
+                }
+            } catch (IOException e) {
+                log.warn("DataPersistence.init failed.");
+            }
+
+        });
+
 
         // 异步创建建立链接
         final Set<NioLaserClient> clients = new HashSet<>();
@@ -186,7 +197,6 @@ public class LaserLauncher {
                 }
 
             });
-
 
         }
 
