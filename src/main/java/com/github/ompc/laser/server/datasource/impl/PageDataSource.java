@@ -329,6 +329,10 @@ public class PageDataSource implements DataSource {
 
                         }//while:FILL_PAGE_LOOP
 
+                        while( page.readCount.get() > 0 ) {
+                            //spin for read complated
+                        }
+
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
                         page.readCount.set(0);
