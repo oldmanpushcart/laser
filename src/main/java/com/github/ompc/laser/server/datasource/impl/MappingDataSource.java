@@ -42,6 +42,11 @@ public class MappingDataSource implements DataSource {
 
 
     @Override
+    public Row getRow(Row row) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Row getRow() throws IOException {
         final Row row = rowQueue.poll();
         if (null == row) {
