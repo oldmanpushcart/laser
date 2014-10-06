@@ -12,6 +12,8 @@ import com.github.ompc.laser.server.datasource.impl.BucketDataPersistence;
 import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
 import com.github.ompc.laser.server.datasource.impl.PageDataPersistence;
 import com.github.ompc.laser.server.datasource.impl.PageDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +33,8 @@ import static java.lang.Thread.currentThread;
  * Created by vlinux on 14-10-3.
  */
 public class LaserLauncher {
+
+    private static final Logger log = LoggerFactory.getLogger(LaserLauncher.class);
 
     /**
      * 启动服务器
@@ -141,7 +145,7 @@ public class LaserLauncher {
      */
     public static void startNioClient(String... args) throws IOException, InterruptedException {
 
-
+        final long startTime = System.currentTimeMillis();
         final ClientConfiger configer = new ClientConfiger();
         configer.setServerAddress(new InetSocketAddress(args[1], Integer.valueOf(args[2])));
         configer.setDataFile(new File(args[3]));
@@ -164,20 +168,24 @@ public class LaserLauncher {
                 ;
         dataPersistence.init();
 
-        final long startTime = System.currentTimeMillis();
-        // 建立链接
+        // 异步创建建立链接
         final Set<NioLaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
-            final NioLaserClient client = new NioLaserClient(countDown, workCyclicBarrier, executorService, dataPersistence, configer, options);
-            client.connect();
-            clients.add(client);
-        }
 
-        // 驱动干活
-        for (NioLaserClient client : clients) {
-            client.work();
-        }
+            executorService.execute(()->{
+                final NioLaserClient client = new NioLaserClient(countDown, workCyclicBarrier, executorService, dataPersistence, configer, options);
+                try {
+                    client.connect();
+                    clients.add(client);
+                    client.work();
+                } catch(IOException e) {
+                    log.warn("client connect failed.", e);
+                }
 
+            });
+
+
+        }
 
         // 等待所有Client完成
         countDown.await();
