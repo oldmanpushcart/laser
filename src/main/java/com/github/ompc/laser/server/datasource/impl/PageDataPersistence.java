@@ -14,7 +14,8 @@ import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
@@ -283,8 +284,21 @@ public class PageDataPersistence implements DataPersistence {
             // ingore...
         }
 
-        // 将文件缓存到磁盘
-        waitingFlushBufferMap.forEach((k, v) -> v.force());
+        // 异步将文件缓存到磁盘
+        final CountDownLatch waitingForForceCountDown = new CountDownLatch(waitingFlushBufferMap.size());
+        final ExecutorService forcePools = Executors.newFixedThreadPool(waitingFlushBufferMap.size());
+        waitingFlushBufferMap.forEach((k, v) -> {
+
+            forcePools.execute(()->{
+                v.force();
+                waitingForForceCountDown.countDown();
+            });
+        });
+        try {
+            waitingForForceCountDown.await();
+        } catch (InterruptedException e) {
+            // ingore...
+        }
         log.info("PageDataPersistence(file:{}) was flushed.", dataFile);
 
     }
