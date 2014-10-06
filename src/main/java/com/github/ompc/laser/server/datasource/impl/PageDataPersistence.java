@@ -305,7 +305,6 @@ public class PageDataPersistence implements DataPersistence {
      * <p>
      * 一页有10^6行
      */
-    @Contended
     class Page {
 
         /*

@@ -382,7 +382,6 @@ public class PageDataSource implements DataSource {
     /**
      * 缓存页
      */
-    @Contended
     class Page {
 
         /*
