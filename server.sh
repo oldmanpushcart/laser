@@ -19,7 +19,7 @@ java \
     -XX:+CMSClassUnloadingEnabled \
     -XX:CMSInitiatingOccupancyFraction=80 \
     -XX:+UseCMSInitiatingOccupancyOnly \
-    -XX:CompileThreshold=500 \
+    -XX:CompileThreshold=1500 \
     -XX:-PrintCompilation \
     -XX:PretenureSizeThreshold=1048576 \
     -jar ./target/laser-jar-with-dependencies.jar 'nioserver' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
