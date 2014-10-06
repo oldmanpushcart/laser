@@ -11,7 +11,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -229,8 +228,7 @@ public class PageDataSource implements DataSource {
                         // 如果已经被初始化后的当前页还没被读完,休眠等待被唤醒
                         pageSwitchLock.lock();
                         try {
-                            // 休眠100ms,或被唤醒
-                            pageSwitchWakeUpCondition.await(100, TimeUnit.MILLISECONDS);
+                            pageSwitchWakeUpCondition.await();
                             continue;
                         } catch (InterruptedException e) {
                             currentThread().interrupt();

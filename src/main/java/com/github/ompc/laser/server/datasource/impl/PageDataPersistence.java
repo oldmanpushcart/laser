@@ -194,8 +194,7 @@ public class PageDataPersistence implements DataPersistence {
                     // 当前页还没被锁定且不是刷新状态，休眠等待被唤醒
                     pageSwitchLock.lock();
                     try {
-                        // 休眠100ms,或被唤醒
-                        pageSwitchWakeUpCondition.await(100, TimeUnit.MILLISECONDS);
+                        pageSwitchWakeUpCondition.await();
                         continue;
                     } catch (InterruptedException e) {
                         currentThread().interrupt();
