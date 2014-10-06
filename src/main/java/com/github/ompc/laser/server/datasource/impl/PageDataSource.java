@@ -30,9 +30,9 @@ public class PageDataSource implements DataSource {
     private final File dataFile;
 
     /*
-     * 空数据
+     * 空行,避免过多的对象分配
      */
-    private final static byte[] EMPTY_DATA = new byte[0];
+    private final static Row EMPTY_ROW = new Row(-1, new byte[0]);
 
     /*
      * 缓存页大小,要求是4K倍数
@@ -85,11 +85,22 @@ public class PageDataSource implements DataSource {
 
     private volatile Page currentPage = null;
 
+    /**
+     * 使用这个方法避免大量对象创建
+     * @param row
+     * @return
+     * @throws IOException
+     */
     @Override
-    public Row getRow() throws IOException {
-
+    public Row getRow(Row row) throws IOException {
         if( isEOF ) {
-            return new Row(-1, EMPTY_DATA);
+            if( null == row ) {
+                return EMPTY_ROW;
+            } else {
+                row.setLineNum(EMPTY_ROW.getLineNum());
+                row.setData(EMPTY_ROW.getData());
+                return row;
+            }
         }
 
         while( true ) {
@@ -100,7 +111,13 @@ public class PageDataSource implements DataSource {
 
             if( page.isLast
                     && readCount == rowCount) {
-                return new Row(-1, EMPTY_DATA);
+                if( null == row ) {
+                    return EMPTY_ROW;
+                } else {
+                    row.setLineNum(EMPTY_ROW.getLineNum());
+                    row.setData(EMPTY_ROW.getData());
+                    return row;
+                }
             }
 
             if( readCount == rowCount ) {
@@ -142,13 +159,20 @@ public class PageDataSource implements DataSource {
 
             }
 
-            return new Row(lineNum, data);
+            if( null == row ) {
+                row = new Row();
+            } else {
+                row.setLineNum(lineNum);
+                row.setData(data);
+            }
+
+            return row;
 
         }
+    }
 
-
-
-
+    public Row getRow() throws IOException {
+        return getRow(null);
     }
 
     @Override

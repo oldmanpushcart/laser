@@ -203,6 +203,7 @@ public class NioLaserClient {
                 int type;
                 int lineNum = 0;
                 int len = 0;
+                final Row row = new Row();
                 DecodeState state = DecodeState.READ_TYPE;
 
                 socketChannel.register(selector, OP_READ);
@@ -262,7 +263,10 @@ public class NioLaserClient {
                                         hasMore = true;
 
                                         // handler GetDataResp
-                                        final Row row = new Row(lineNum, data);
+                                        // 由于这里没有做任何异步化操作,包括dataPersistence中也没有
+                                        // 所以这里优化将new去掉,避免过多的对象分配
+                                        row.setLineNum(lineNum);
+                                        row.setData(data);
                                         dataPersistence.putRow(row);
 
 

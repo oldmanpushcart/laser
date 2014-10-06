@@ -1,5 +1,6 @@
 package com.github.ompc.laser.server;
 
+import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.networking.GetDataResp;
@@ -171,6 +172,7 @@ public class NioLaserServer {
                 currentThread().setName("child-" + format(socketChannel.socket()) + "-writer");
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildSendBufferSize());
+                final Row row = new Row();
                 try (final Selector selector = Selector.open()) {
 
                     final int LIMIT_REMAINING = 212;//TYPE(4B)+LINENUM(4B)+LEN(4B)+DATA(200B)
@@ -190,21 +192,25 @@ public class NioLaserServer {
                                 }
 
                                 reqCounter.decrementAndGet();
-                                final Row row = dataSource.getRow();
+                                dataSource.getRow(row);
 
                                 if (row.getLineNum() < 0) {
                                     // EOF
-                                    final GetEofResp resp = new GetEofResp();
-                                    buffer.putInt(resp.getType());
+//                                    final GetEofResp resp = new GetEofResp();
+//                                    buffer.putInt(resp.getType());
+                                    // 优化,避免产生大量碎片对象
+                                    buffer.putInt(LaserConstant.PRO_RESP_GETEOF);
                                     isEof = true;
                                     break;
                                 } else {
                                     // normal
-                                    final GetDataResp resp = new GetDataResp(row.getLineNum(), process(row.getData()));
-                                    buffer.putInt(resp.getType());
-                                    buffer.putInt(resp.getLineNum());
-                                    buffer.putInt(resp.getData().length);
-                                    buffer.put(resp.getData());
+//                                    final GetDataResp resp = new GetDataResp(row.getLineNum(), process(row.getData()));
+//                                    buffer.putInt(resp.getType());
+                                    // 优化,避免产生大量碎片对象
+                                    buffer.putInt(LaserConstant.PRO_RESP_GETDATA);
+                                    buffer.putInt(row.getLineNum());
+                                    buffer.putInt(row.getData().length);
+                                    buffer.put(row.getData());
                                 }
 
                             }//while

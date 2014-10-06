@@ -43,6 +43,11 @@ public class BlockDataSource implements DataSource {
     }
 
     @Override
+    public Row getRow(Row row) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Row getRow() throws IOException {
         final String line = reader.readLine();
         if (null == line) {

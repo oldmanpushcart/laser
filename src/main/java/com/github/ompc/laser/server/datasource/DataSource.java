@@ -11,9 +11,20 @@ public interface DataSource {
     /**
      * 获取一行数据
      *
+     * @param row
      * @return 返回一行数据
      * @throws IOException 若文件访问失败，则抛出IOException
      *                     若到达文件末端，则抛出EOFException
+     */
+    Row getRow(Row row) throws IOException;
+
+    /**
+     * 获取一行数据
+     *
+     * @return 返回一行数据
+     * @throws IOException 若文件访问失败，则抛出IOException
+     *                     若到达文件末端，则抛出EOFException
+     * @deprecated 会产生大量对象, 废弃使用getRow(Row)
      */
     Row getRow() throws IOException;
 
