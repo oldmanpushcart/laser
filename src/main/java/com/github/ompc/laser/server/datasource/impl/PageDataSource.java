@@ -387,11 +387,13 @@ public class PageDataSource implements DataSource {
         /*
          * 页码
          */
+        @Contended
         volatile int pageNum;
 
         /*
          * 页面总行数
          */
+        @Contended
         volatile int rowCount = 0;
 
         /*
