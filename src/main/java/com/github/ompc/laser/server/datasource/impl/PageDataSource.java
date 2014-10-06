@@ -153,7 +153,7 @@ public class PageDataSource implements DataSource {
                     while (pageTable[nextPageIdx].pageNum != page.pageNum + 1) {
                         // spin for switch
                         Thread.yield();
-                        continue;
+//                        continue;
                     }
                     currentPage = pageTable[nextPageIdx];
                 }
