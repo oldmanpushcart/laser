@@ -170,6 +170,7 @@ public class NioLaserServer {
             public void run() {
 
                 currentThread().setName("child-" + format(socketChannel.socket()) + "-writer");
+                currentThread().setPriority(Thread.MAX_PRIORITY);
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildSendBufferSize());
                 final Row row = new Row();
