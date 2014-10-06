@@ -151,6 +151,7 @@ public class PageDataPersistence implements DataPersistence {
             );
 
             if (!page.infoRef.compareAndSet(expectInfo, updateInfo)) {
+                log.info("debug...");
                 continue;
             }
 
