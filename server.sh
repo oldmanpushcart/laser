@@ -13,6 +13,7 @@ java \
     -Xmx8G \
     -Xms8G \
     -Xmn2G \
+    -Xnoclassgc \
     -XX:+UseConcMarkSweepGC \
     -XX:CMSMaxAbortablePrecleanTime=5000 \
     -XX:+CMSClassUnloadingEnabled \
@@ -20,5 +21,5 @@ java \
     -XX:+UseCMSInitiatingOccupancyOnly \
     -XX:CompileThreshold=500 \
     -XX:-PrintCompilation \
-    -Xnoclassgc \
+    -XX:PretenureSizeThreshold=1048576 \
     -jar ./target/laser-jar-with-dependencies.jar 'nioserver' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties

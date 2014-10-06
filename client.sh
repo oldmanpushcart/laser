@@ -9,8 +9,9 @@ java \
     -Xmx8G \
     -Xms8G \
     -Xmn4G \
+    -Xnoclassgc \
     -XX:CompileThreshold=500 \
     -XX:-PrintCompilation \
-    -Xnoclassgc \
+    -XX:PretenureSizeThreshold=1048576 \
     -jar ./target/laser-jar-with-dependencies.jar 'nioclient' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
 
