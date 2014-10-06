@@ -48,13 +48,13 @@ public class PageDataPersistence implements DataPersistence {
      * 页行数<br/>
      * 一页中总共有几行
      */
-    private final int PAGE_ROWS_NUM = 100000;
+    private final int PAGE_ROWS_NUM = 50000;
 
     /*
      * 页码表大小<br/>
      * 一共有几页
      */
-    private final int PAGE_TABLE_SIZE = 64;
+    private final int PAGE_TABLE_SIZE = 32;
 
 
     /*
