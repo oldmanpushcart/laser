@@ -4,6 +4,7 @@ import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.Contended;
 
 import java.io.File;
 import java.io.IOException;
@@ -309,6 +310,7 @@ public class PageDataPersistence implements DataPersistence {
         /*
          * 页码
          */
+        @Contended
         volatile int pageNum;
 
         /*
