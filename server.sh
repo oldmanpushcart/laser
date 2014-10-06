@@ -22,4 +22,5 @@ java \
     -XX:-PrintCompilation \
     -XX:PretenureSizeThreshold=1048576 \
     -XX:+UseThreadPriorities \
+    -XX:-RestrictContended \
     -jar ./target/laser-jar-with-dependencies.jar 'nioserver' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties
