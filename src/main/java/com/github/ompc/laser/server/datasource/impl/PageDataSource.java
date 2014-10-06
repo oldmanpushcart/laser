@@ -109,14 +109,7 @@ public class PageDataSource implements DataSource {
 
             final int offsetOfRow = readCount * PAGE_ROW_SIZE;
 
-            final ByteBuffer byteBuffer;
-            try {
-                byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
-            } catch( IndexOutOfBoundsException e ) {
-                log.info("page.pageNum={},offsetOfRow={},readCount={},page.rowCount={}",
-                        new Object[]{page.pageNum, offsetOfRow, readCount, page.rowCount});
-                throw e;
-            }
+            final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
             final int lineNum = byteBuffer.getInt();
             final int validByteCount = byteBuffer.getInt();
             final byte[] data = new byte[validByteCount];
@@ -127,7 +120,6 @@ public class PageDataSource implements DataSource {
                 final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
                 while( pageTable[nextPageIdx].pageNum != page.pageNum+1 ) {
                     // spin for switch
-//                    log.info("debug for nextPageIdx.pageNum={},page.pageNum+1={}",(pageTable[nextPageIdx].pageNum),(page.pageNum+1));
                     continue;
                 }
                 currentPage = pageTable[nextPageIdx];
