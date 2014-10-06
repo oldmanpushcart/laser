@@ -209,8 +209,10 @@ public class NioLaserServer {
                                     // 优化,避免产生大量碎片对象
                                     buffer.putInt(LaserConstant.PRO_RESP_GETDATA);
                                     buffer.putInt(row.getLineNum());
-                                    buffer.putInt(row.getData().length);
-                                    buffer.put(row.getData());
+
+                                    final byte[] _data = process(row.getData());
+                                    buffer.putInt(_data.length);
+                                    buffer.put(_data);
                                 }
 
                             }//while
