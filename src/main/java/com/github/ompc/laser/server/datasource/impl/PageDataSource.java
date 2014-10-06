@@ -264,9 +264,7 @@ public class PageDataSource implements DataSource {
                                 }
 
                                 if (fixLength > 0) {
-                                    long s = System.currentTimeMillis();
                                     mappedBuffer = fileChannel.map(READ_ONLY, fileOffset, fixLength).load();
-                                    log.info("debug for cost={}",(System.currentTimeMillis() - s));
                                 }
                             }
 
