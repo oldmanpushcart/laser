@@ -6,9 +6,9 @@ typeset RESULT_DATAFILE_PATH=${3}
 
 java \
     -XX:+UseBiasedLocking\
-    -Xmx4G \
-    -Xms4G \
-    -Xmn2G \
+    -Xmx8G \
+    -Xms8G \
+    -Xmn4G \
     -XX:CompileThreshold=500 \
     -XX:-PrintCompilation \
     -jar ./target/laser-jar-with-dependencies.jar 'nioclient' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
