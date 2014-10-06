@@ -126,7 +126,6 @@ public class NioLaserClient {
         @Override
         public void run() {
             currentThread().setName("client-" + format(socketChannel.socket()) + "-writer");
-            currentThread().setPriority(Thread.MAX_PRIORITY);
             try (final Selector selector = Selector.open()) {
 
                 try {
@@ -193,7 +192,7 @@ public class NioLaserClient {
         public void run() {
 
             currentThread().setName("client-" + format(socketChannel.socket()) + "-reader");
-
+            currentThread().setPriority(Thread.MAX_PRIORITY);
             final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
             try (final Selector selector = Selector.open()) {
 
