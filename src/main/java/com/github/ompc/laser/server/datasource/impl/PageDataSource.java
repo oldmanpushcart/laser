@@ -94,15 +94,15 @@ public class PageDataSource implements DataSource {
      */
     @Override
     public Row getRow(Row row) throws IOException {
-//        if (isEOF) {
-//            if (null == row) {
-//                return EMPTY_ROW;
-//            } else {
-//                row.setLineNum(EMPTY_ROW.getLineNum());
-//                row.setData(EMPTY_ROW.getData());
-//                return row;
-//            }
-//        }
+        if (isEOF) {
+            if (null == row) {
+                return EMPTY_ROW;
+            } else {
+                row.setLineNum(EMPTY_ROW.getLineNum());
+                row.setData(EMPTY_ROW.getData());
+                return row;
+            }
+        }
 
         while (true) {
 
