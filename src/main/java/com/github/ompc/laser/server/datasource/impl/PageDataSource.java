@@ -142,16 +142,6 @@ public class PageDataSource implements DataSource {
                     isEOF = true;
                 } else {
 
-                    final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
-                    if( pageTable[nextPageIdx].pageNum != page.pageNum + 1 ) {
-                        continue;
-                    }
-//                    while (pageTable[nextPageIdx].pageNum != page.pageNum + 1) {
-//                        // spin for switch
-//                        Thread.yield();
-//                        continue;
-//                    }
-
                     pageSwitchLock.lock();
                     try {
                         pageSwitchWakeUpCondition.signal();
@@ -159,6 +149,11 @@ public class PageDataSource implements DataSource {
                         pageSwitchLock.unlock();
                     }
 
+                    final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
+                    while (pageTable[nextPageIdx].pageNum != page.pageNum + 1) {
+                        // spin for switch
+                        Thread.yield();
+                    }
                     currentPage = pageTable[nextPageIdx];
                 }
 
