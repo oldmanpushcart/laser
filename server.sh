@@ -20,4 +20,5 @@ java \
     -XX:+UseCMSInitiatingOccupancyOnly \
     -XX:CompileThreshold=500 \
     -XX:-PrintCompilation \
+    -Xnoclassgc \
     -jar ./target/laser-jar-with-dependencies.jar 'nioserver' ${DATAFILE_PATH} ${SERVER_PORT} ./laser.properties

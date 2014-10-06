@@ -11,5 +11,6 @@ java \
     -Xmn4G \
     -XX:CompileThreshold=500 \
     -XX:-PrintCompilation \
+    -Xnoclassgc \
     -jar ./target/laser-jar-with-dependencies.jar 'nioclient' ${SERVER_IP} ${SERVER_PORT} ${RESULT_DATAFILE_PATH} ./laser.properties
 
