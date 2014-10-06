@@ -141,7 +141,7 @@ public class LaserLauncher {
      */
     public static void startNioClient(String... args) throws IOException, InterruptedException {
 
-        final long startTime = System.currentTimeMillis();
+
         final ClientConfiger configer = new ClientConfiger();
         configer.setServerAddress(new InetSocketAddress(args[1], Integer.valueOf(args[2])));
         configer.setDataFile(new File(args[3]));
@@ -164,6 +164,7 @@ public class LaserLauncher {
                 ;
         dataPersistence.init();
 
+
         // 建立链接
         final Set<NioLaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
@@ -172,6 +173,7 @@ public class LaserLauncher {
             clients.add(client);
         }
 
+        final long startTime = System.currentTimeMillis();
         // 驱动干活
         for (NioLaserClient client : clients) {
             client.work();
