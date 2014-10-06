@@ -20,7 +20,8 @@ import static java.lang.Thread.currentThread;
 import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
 
 /**
- * 分页数据源
+ * 分页数据源<br/>
+ * 目前有BUG，在分页切换的时候会丢行...
  * Created by vlinux on 14-10-5.
  */
 public class PageDataSource implements DataSource {
