@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -133,10 +133,12 @@ public class PageDataPersistence implements DataPersistence {
                 .put(LINE_DELIMITER);
 
         // 更新页面数据
-        page.byteCount.addAndGet(validByteCount);
+//        page.byteCount.addAndGet(validByteCount);
+        page.byteCount.add(validByteCount);
 
         // 如果页面已被写满，则需要唤醒页面切换者
-        if (page.rowCount.incrementAndGet() == PAGE_ROWS_NUM) {
+        page.rowCount.increment();
+        if (page.rowCount.intValue() == PAGE_ROWS_NUM) {
             pageSwitchLock.lock();
             try {
                 pageSwitchWakeUpCondition.signal();
@@ -187,7 +189,7 @@ public class PageDataPersistence implements DataPersistence {
                 // 1.顺序的更换页码
                 // 2.将页码刷入文件缓存
                 final Page page = pageTable[nextSwitchPageTableIndex];
-                final int rowCount = page.rowCount.get();
+                final int rowCount = page.rowCount.intValue();
 
                 if (rowCount < PAGE_ROWS_NUM
                         && !isFlushFlag) {
@@ -203,14 +205,14 @@ public class PageDataPersistence implements DataPersistence {
                     }//try
                 }
 
-                if (page.rowCount.get() == PAGE_ROWS_NUM
+                if (page.rowCount.intValue() == PAGE_ROWS_NUM
                         || (isFlushFlag && rowCount > 0)) {
 
                     // 当前页面已被写需要立即刷入文件缓存中
                     try {
 
                         // 写完文件缓存后丢入待刷新队列中
-                        final MappedByteBuffer mappedBuffer = fileChannel.map(READ_WRITE, fileOffset, page.byteCount.get());
+                        final MappedByteBuffer mappedBuffer = fileChannel.map(READ_WRITE, fileOffset, page.byteCount.longValue());
                         final ByteBuffer dataBuffer = ByteBuffer.wrap(page.data);
 //                        final int rowCount = page.rowCount.get();
                         for (int rowIdx = 0; rowIdx < rowCount; rowIdx++) {
@@ -226,8 +228,8 @@ public class PageDataPersistence implements DataPersistence {
                         waitingFlushBufferMap.put(page.pageNum, mappedBuffer);
 
                         // 重设当前页码数据
-                        page.byteCount.set(0);
-                        page.rowCount.set(0);
+                        page.byteCount.reset();
+                        page.rowCount.reset();
                         page.pageNum += PAGE_TABLE_SIZE;
                         fileOffset += mappedBuffer.capacity();
 
@@ -317,13 +319,13 @@ public class PageDataPersistence implements DataPersistence {
          * 页面总行数
          */
         @Contended
-        AtomicInteger rowCount = new AtomicInteger(0);
+        LongAdder rowCount = new LongAdder();
 
         /*
          * 页面总字节数
          */
         @Contended
-        AtomicLong byteCount = new AtomicLong(0);
+        LongAdder byteCount = new LongAdder();
 
         /*
          * 数据段
