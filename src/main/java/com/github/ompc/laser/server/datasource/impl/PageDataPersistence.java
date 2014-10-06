@@ -224,7 +224,6 @@ public class PageDataPersistence implements DataPersistence {
 
                             // 当前行数据偏移量
                             final int offsetOfRowData = offsetOfRow + Integer.BYTES;
-
                             mappedBuffer.put(page.data, offsetOfRowData, validByteCount);
                         }//for
                         waitingFlushBufferMap.put(page.pageNum, mappedBuffer);
@@ -291,7 +290,7 @@ public class PageDataPersistence implements DataPersistence {
         }
 
         // 将文件缓存到磁盘
-        waitingFlushBufferMap.forEach((k, v) -> {v.force();log.info("k={} was forced. size={}",k,v.capacity());});
+        waitingFlushBufferMap.forEach((k, v) -> v.force());
         log.info("PageDataPersistence(file:{}) was flushed.", dataFile);
 
     }
