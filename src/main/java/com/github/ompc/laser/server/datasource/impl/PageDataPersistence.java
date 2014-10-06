@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -53,7 +54,7 @@ public class PageDataPersistence implements DataPersistence {
      * 页码表大小<br/>
      * 一共有几页
      */
-    private final int PAGE_TABLE_SIZE = 12;
+    private final int PAGE_TABLE_SIZE = 10;
 
 
     /*
@@ -72,7 +73,7 @@ public class PageDataPersistence implements DataPersistence {
      * 页面切换者锁
      */
     private final ReentrantLock pageSwitchLock = new ReentrantLock();
-    private final Condition pageSwitchWakeUpCondition = pageSwitchLock.newCondition();
+    private final Condition pageSwitchWakeupCondition = pageSwitchLock.newCondition();
 
     /*
      * 页面切换者完成标记
@@ -92,7 +93,6 @@ public class PageDataPersistence implements DataPersistence {
     @Override
     public void putRow(Row row) throws IOException {
 
-
         final int lineNum = row.getLineNum();
 
         // 计算页码
@@ -101,11 +101,13 @@ public class PageDataPersistence implements DataPersistence {
         // 计算页码表位置
         final int tableIdx = pageNum % PAGE_TABLE_SIZE;
 
-        while (pageTable[tableIdx].infoRef.get().pageNum != pageNum) {
+        while (pageTable[tableIdx].pageNum != pageNum
+                && pageTable[tableIdx].isLocked) {
             // TODO : 优化自旋锁
             // 如果页码表中当前位置所存放的页面编码对应不上
             // 则认为页切换不及时，这里采用自旋等待策略，其实相当危险
-            Thread.yield();
+            log.info("debug for spin, page.pageNum={},pageNum={},lineNum={}",
+                    new Object[]{pageTable[tableIdx].pageNum, pageNum, lineNum});
         }
 
         final Page page = pageTable[tableIdx];
@@ -131,41 +133,19 @@ public class PageDataPersistence implements DataPersistence {
                 .put(row.getData())
                 .put(LINE_DELIMITER);
 
+        // 更新页面数据
+        page.byteCount.addAndGet(validByteCount);
+        page.rowCount.incrementAndGet();
 
-        // CAS更新页面信息
-        while (true) {
-
-            final PageInfo expectInfo = page.infoRef.get();
-
-            if (expectInfo.rowCount >= PAGE_ROWS_NUM) {
-                // can't happend
-                log.info("debug for CAS, row.lineNum={},page.rowCount={},PAGE_ROWS_NUM={}",
-                        new Object[]{row.getLineNum(), expectInfo.rowCount, PAGE_ROWS_NUM});
-                break;
+        // 如果页面已被写满，则需要唤醒页面切换者，同时将页面锁上
+        if (page.isFull()) {
+            page.isLocked = true;
+            pageSwitchLock.lock();
+            try {
+                pageSwitchWakeupCondition.signal();
+            } finally {
+                pageSwitchLock.unlock();
             }
-
-            final PageInfo updateInfo = new PageInfo(
-                    expectInfo.pageNum,
-                    expectInfo.rowCount + 1,
-                    expectInfo.byteCount + validByteCount
-            );
-
-            if (!page.infoRef.compareAndSet(expectInfo, updateInfo)) {
-                continue;
-            }
-
-            if (PAGE_ROWS_NUM == expectInfo.rowCount) {
-                // 如果一页被写满,则需要通知切换者
-                pageSwitchLock.lock();
-                try {
-                    pageSwitchWakeUpCondition.signal();
-                } finally {
-                    pageSwitchLock.unlock();
-                }
-            }
-
-            break;
-
         }
 
     }
@@ -188,7 +168,8 @@ public class PageDataPersistence implements DataPersistence {
         // 初始化页码表
         for (int i = 0; i < pageTable.length; i++) {
             final Page page = new Page();
-            page.infoRef.set(new PageInfo(i, 0, 0));
+            page.pageNum = i;
+            page.isLocked = false;
             pageTable[i] = page;
         }
 
@@ -211,13 +192,13 @@ public class PageDataPersistence implements DataPersistence {
                 // 2.将页码刷入文件缓存
                 final Page page = pageTable[nextSwitchPageTableIndex];
 
-                if (page.infoRef.get().rowCount < PAGE_ROWS_NUM
+                if (!page.isLocked
                         && !isFlushFlag) {
-                    // 如果当前页面没满,且当前不是刷新状态,则进入休眠期
+                    // 当前页还没被锁定且不是刷新状态，休眠等待被唤醒
                     pageSwitchLock.lock();
                     try {
                         // 休眠100ms,或被唤醒
-                        pageSwitchWakeUpCondition.await(100, TimeUnit.MILLISECONDS);
+                        pageSwitchWakeupCondition.await(100, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException e) {
                         currentThread().interrupt();
                     } finally {
@@ -225,17 +206,16 @@ public class PageDataPersistence implements DataPersistence {
                     }//try
                 }
 
-                if (page.infoRef.get().rowCount == PAGE_ROWS_NUM
-                        || (isFlushFlag && page.infoRef.get().rowCount > 0)) {
+                if (page.isLocked
+                        || (isFlushFlag && !page.isEmpty())) {
 
-                    // 1.当前页面已经被写满
-                    // 2.当前页面已被写,需要立即刷入文件缓存中
+                    // 当前页面已被写需要立即刷入文件缓存中
                     try {
 
                         // 写完文件缓存后丢入待刷新队列中
-                        final MappedByteBuffer mappedBuffer = fileChannel.map(READ_WRITE, fileOffset, page.infoRef.get().byteCount);
+                        final MappedByteBuffer mappedBuffer = fileChannel.map(READ_WRITE, fileOffset, page.byteCount.get());
                         final ByteBuffer dataBuffer = ByteBuffer.wrap(page.data);
-                        final int rowCount = page.infoRef.get().rowCount;
+                        final int rowCount = page.rowCount.get();
                         for (int rowIdx = 0; rowIdx < rowCount; rowIdx++) {
                             // 当前行偏移量
                             final int offsetOfRow = rowIdx * PAGE_ROW_SIZE;
@@ -246,24 +226,16 @@ public class PageDataPersistence implements DataPersistence {
                             final int offsetOfRowData = offsetOfRow + Integer.BYTES;
                             mappedBuffer.put(page.data, offsetOfRowData, validByteCount);
                         }//for
-                        waitingFlushBufferMap.put(page.infoRef.get().pageNum, mappedBuffer);
+                        waitingFlushBufferMap.put(page.pageNum, mappedBuffer);
 
-                        // CAS update page's info
-                        // // 重设当前页码数据
-                        while (true) {
-
-                            final PageInfo expectInfo = page.infoRef.get();
-                            final PageInfo updateInfo = new PageInfo(expectInfo.pageNum + PAGE_TABLE_SIZE, 0, 0);
-                            if( ! page.infoRef.compareAndSet(expectInfo, updateInfo) ) {
-                                continue;
-                            }
-
-                            break;
-
-                        }
-
-                        // 计算整体偏移量
+                        // 重设当前页码数据
+                        page.byteCount.set(0);
+                        page.rowCount.set(0);
+                        page.pageNum += PAGE_TABLE_SIZE;
                         fileOffset += mappedBuffer.capacity();
+
+                        // 解锁
+                        page.isLocked = false;
 
                     } catch (IOException e) {
                         // 如果写文件映射发生异常，则表明当前I/O出错需要下次尝试
@@ -280,7 +252,7 @@ public class PageDataPersistence implements DataPersistence {
 
 
                 if (isFlushFlag
-                        && page.infoRef.get().rowCount == 0) {
+                        && page.isEmpty()) {
                     break;
                 }
 
@@ -305,7 +277,7 @@ public class PageDataPersistence implements DataPersistence {
         pageSwitchLock.lock();
         try {
             // 唤醒页面切换者
-            pageSwitchWakeUpCondition.signal();
+            pageSwitchWakeupCondition.signal();
         } finally {
             pageSwitchLock.unlock();
         }
@@ -318,10 +290,7 @@ public class PageDataPersistence implements DataPersistence {
         }
 
         // 将文件缓存到磁盘
-        waitingFlushBufferMap.forEach((k, v) -> {
-            v.force();
-            log.info("k={} was forced. size={}", k, v.capacity());
-        });
+        waitingFlushBufferMap.forEach((k, v) -> v.force());
         log.info("PageDataPersistence(file:{}) was flushed.", dataFile);
 
     }
@@ -338,48 +307,54 @@ public class PageDataPersistence implements DataPersistence {
 
 
     /**
-     * 缓存页信息
-     */
-    final class PageInfo {
-
-        /*
-         * 页码
-         */
-        final int pageNum;
-
-        /*
-         * 页面总行数
-         */
-        final int rowCount;
-
-        /*
-         * 页面总字节数
-         */
-        final long byteCount;
-
-        PageInfo(int pageNum, int rowCount, long byteCount) {
-            this.pageNum = pageNum;
-            this.rowCount = rowCount;
-            this.byteCount = byteCount;
-        }
-    }
-
-    /**
      * 缓存页<br/>
      * <p>
      * 一页有10^6行
      */
-    final class Page {
+    class Page {
 
         /*
-         * 缓存页信息(引用)
+         * 页码
          */
-        final AtomicReference<PageInfo> infoRef = new AtomicReference<>();
+        volatile int pageNum;
+
+        /*
+         * 页面总行数
+         */
+        AtomicInteger rowCount = new AtomicInteger(0);
+
+        /*
+         * 页面总字节数
+         */
+        AtomicLong byteCount = new AtomicLong(0);
+
+        /*
+         * 是否被锁定,被锁定的页无法再继续更新,只能被切换
+         */
+        volatile boolean isLocked = false;
 
         /*
          * 数据段
          */
-        final byte[] data = new byte[PAGE_ROW_SIZE * PAGE_ROWS_NUM];
+        byte[] data = new byte[PAGE_ROW_SIZE * PAGE_ROWS_NUM];
+
+        /**
+         * 判断当前页面是否已经被写满
+         *
+         * @return
+         */
+        boolean isFull() {
+            return rowCount.get() == PAGE_ROWS_NUM;
+        }
+
+        /**
+         * 判断当前页面是否从未被写入过
+         *
+         * @return
+         */
+        boolean isEmpty() {
+            return rowCount.get() == 0;
+        }
 
     }
 
