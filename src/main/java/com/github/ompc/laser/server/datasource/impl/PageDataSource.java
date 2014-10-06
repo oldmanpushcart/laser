@@ -86,14 +86,15 @@ public class PageDataSource implements DataSource {
 
     /**
      * 使用这个方法避免大量对象创建
+     *
      * @param row
      * @return
      * @throws IOException
      */
     @Override
     public Row getRow(Row row) throws IOException {
-        if( isEOF ) {
-            if( null == row ) {
+        if (isEOF) {
+            if (null == row) {
                 return EMPTY_ROW;
             } else {
                 row.setLineNum(EMPTY_ROW.getLineNum());
@@ -102,15 +103,15 @@ public class PageDataSource implements DataSource {
             }
         }
 
-        while( true ) {
+        while (true) {
 
-            final Page page = currentPage == null?pageTable[0]:currentPage;
+            final Page page = currentPage == null ? pageTable[0] : currentPage;
             final int readCount = page.readCount.get();
             final int rowCount = page.rowCount;
 
-            if( page.isLast
+            if (page.isLast
                     && readCount == rowCount) {
-                if( null == row ) {
+                if (null == row) {
                     return EMPTY_ROW;
                 } else {
                     row.setLineNum(EMPTY_ROW.getLineNum());
@@ -119,11 +120,11 @@ public class PageDataSource implements DataSource {
                 }
             }
 
-            if( readCount == rowCount ) {
+            if (readCount == rowCount) {
                 continue;
             }
 
-            if( !page.readCount.compareAndSet(readCount, readCount+1) ) {
+            if (!page.readCount.compareAndSet(readCount, readCount + 1)) {
                 continue;
             }
 
@@ -135,9 +136,9 @@ public class PageDataSource implements DataSource {
             final byte[] data = new byte[validByteCount];
             byteBuffer.get(data);
 
-            if( page.readCount.get() == rowCount ) {
+            if (page.readCount.get() == rowCount) {
 
-                if( page.isLast ) {
+                if (page.isLast) {
                     isEOF = true;
                 } else {
 
@@ -149,7 +150,7 @@ public class PageDataSource implements DataSource {
                     }
 
                     final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
-                    while( pageTable[nextPageIdx].pageNum != page.pageNum+1 ) {
+                    while (pageTable[nextPageIdx].pageNum != page.pageNum + 1) {
                         // spin for switch
                         continue;
                     }
@@ -158,7 +159,7 @@ public class PageDataSource implements DataSource {
 
             }
 
-            if( null == row ) {
+            if (null == row) {
                 row = new Row();
             } else {
                 row.setLineNum(lineNum);
@@ -221,10 +222,9 @@ public class PageDataSource implements DataSource {
                     // 1.顺序的更换页码
                     // 2.将文件缓存刷入页码
                     final Page page = pageTable[nextSwitchPageTableIndex];
-                    final int readCount = page.readCount.get();
 
                     if (page.isInit
-                            && readCount < page.rowCount) {
+                            && page.readCount.get() < page.rowCount) {
                         // 如果已经被初始化后的当前页还没被读完,休眠等待被唤醒
                         pageSwitchLock.lock();
                         try {
@@ -238,7 +238,7 @@ public class PageDataSource implements DataSource {
                     }
 
                     if (!page.isInit
-                            || readCount == page.rowCount) {
+                            || page.readCount.get() == page.rowCount) {
 
                         final ByteBuffer dataBuffer = ByteBuffer.wrap(page.data);
 
@@ -328,10 +328,6 @@ public class PageDataSource implements DataSource {
                             }//while:MAPPED
 
                         }//while:FILL_PAGE_LOOP
-
-                        while( page.readCount.get() > 0 ) {
-                            //spin for read complated
-                        }
 
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
