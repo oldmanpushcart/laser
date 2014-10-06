@@ -13,7 +13,6 @@ java \
     -Xmx8G \
     -Xms8G \
     -Xmn2G \
-    -Xnoclassgc \
     -XX:+UseConcMarkSweepGC \
     -XX:CMSMaxAbortablePrecleanTime=5000 \
     -XX:+CMSClassUnloadingEnabled \
