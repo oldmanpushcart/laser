@@ -127,14 +127,14 @@ public class NioLaserClient {
             currentThread().setName("client-" + format(socketChannel.socket()) + "-writer");
             try (final Selector selector = Selector.open()) {
 
+                try {
+                    workCyclicBarrier.await();
+                } catch (Exception e) {
+                    log.warn("workCB await failed.", e);
+                }
+
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
                 while (isRunning) {
-
-                    try {
-                        workCyclicBarrier.await();
-                    } catch (Exception e) {
-                        log.warn("workCB await failed.", e);
-                    }
 
                     final GetDataReq req = new GetDataReq();
                     if (buffer.remaining() >= Integer.BYTES) {
@@ -193,6 +193,12 @@ public class NioLaserClient {
             final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
             try (final Selector selector = Selector.open()) {
 
+                try {
+                    workCyclicBarrier.await();
+                } catch (Exception e) {
+                    log.warn("workCB await failed.", e);
+                }
+
                 // decode
                 int type;
                 int lineNum = 0;
@@ -202,12 +208,6 @@ public class NioLaserClient {
                 socketChannel.register(selector, OP_READ);
                 MAIN_LOOP:
                 while (isRunning) {
-
-                    try {
-                        workCyclicBarrier.await();
-                    } catch (Exception e) {
-                        log.warn("workCB await failed.", e);
-                    }
 
                     selector.select();
                     final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
