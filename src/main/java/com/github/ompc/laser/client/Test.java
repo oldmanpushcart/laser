@@ -1,6 +1,7 @@
 package com.github.ompc.laser.client;
 
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 
 /**
  * Created by vlinux on 14-10-3.
