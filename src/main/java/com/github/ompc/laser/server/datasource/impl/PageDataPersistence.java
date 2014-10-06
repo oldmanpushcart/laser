@@ -151,17 +151,9 @@ public class PageDataPersistence implements DataPersistence {
             );
 
             if (!page.infoRef.compareAndSet(expectInfo, updateInfo)) {
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
-                Thread.yield();
+                for( int i=0;i<24;i++ ) {
+                    Thread.yield();
+                }
                 continue;
             }
 
