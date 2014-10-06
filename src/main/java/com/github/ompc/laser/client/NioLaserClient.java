@@ -1,5 +1,6 @@
 package com.github.ompc.laser.client;
 
+import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
@@ -136,9 +137,10 @@ public class NioLaserClient {
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
                 while (isRunning) {
 
-                    final GetDataReq req = new GetDataReq();
+//                    final GetDataReq req = new GetDataReq();
                     if (buffer.remaining() >= Integer.BYTES) {
-                        buffer.putInt(req.getType());
+//                        buffer.putInt(req.getType());
+                        buffer.putInt(LaserConstant.PRO_REQ_GETDATA);
                         continue;
                     } else {
                         socketChannel.register(selector, OP_WRITE);
