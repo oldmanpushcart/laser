@@ -143,12 +143,12 @@ public class PageDataSource implements DataSource {
                     isEOF = true;
                 } else {
 
-//                    pageSwitchLock.lock();
-//                    try {
-//                        pageSwitchWakeUpCondition.signal();
-//                    } finally {
-//                        pageSwitchLock.unlock();
-//                    }
+                    pageSwitchLock.lock();
+                    try {
+                        pageSwitchWakeUpCondition.signal();
+                    } finally {
+                        pageSwitchLock.unlock();
+                    }
 
                     final int nextPageIdx = (page.pageNum + 1) % PAGE_TABLE_SIZE;
                     while (pageTable[nextPageIdx].pageNum != page.pageNum + 1) {
