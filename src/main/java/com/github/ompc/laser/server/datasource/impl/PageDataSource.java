@@ -377,24 +377,22 @@ public class PageDataSource implements DataSource {
     /**
      * 缓存页
      */
+    @Contended
     class Page {
 
         /*
          * 页码
          */
-        @Contended
         volatile int pageNum;
 
         /*
          * 页面总行数
          */
-        @Contended
         volatile int rowCount = 0;
 
         /*
          * 已被读取行数
          */
-        @Contended
         AtomicInteger readCount = new AtomicInteger(0);
 
         /*
