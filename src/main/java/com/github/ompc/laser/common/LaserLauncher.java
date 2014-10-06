@@ -162,11 +162,14 @@ public class LaserLauncher {
             t.setDaemon(true);
             return t;
         });
+
+        long s = System.currentTimeMillis();
         final DataPersistence dataPersistence
                 // = new BucketDataPersistence(configer.getDataFile())
                 = new PageDataPersistence(configer.getDataFile())
                 ;
         dataPersistence.init();
+        log.info("debug for cost={}",(System.currentTimeMillis()-s));
 
         // 异步创建建立链接
         final Set<NioLaserClient> clients = new HashSet<>();
