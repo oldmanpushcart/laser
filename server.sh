@@ -14,6 +14,11 @@ java \
     -Xms8G \
     -Xmn2G \
     -Xnoclassgc \
+    -XX:+UseConcMarkSweepGC \
+    -XX:CMSMaxAbortablePrecleanTime=5000 \
+    -XX:+CMSClassUnloadingEnabled \
+    -XX:CMSInitiatingOccupancyFraction=80 \
+    -XX:+UseCMSInitiatingOccupancyOnly \
     -XX:CompileThreshold=1500 \
     -XX:-PrintCompilation \
     -XX:PretenureSizeThreshold=1048576 \
