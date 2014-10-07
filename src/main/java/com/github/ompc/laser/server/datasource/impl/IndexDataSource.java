@@ -14,11 +14,10 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static java.lang.System.arraycopy;
-
 /**
  * 索引数据源
  * Created by vlinux on 14-10-4.
+ *
  * @deprecated 性能不行
  */
 public class IndexDataSource implements DataSource {
@@ -54,13 +53,14 @@ public class IndexDataSource implements DataSource {
 
     /**
      * 根据索引获取row
+     *
      * @param rowIndex
      * @return
      */
     private Row getRowByIndex(RowIndex rowIndex) {
         final byte[] data = new byte[rowIndex.dataLength];
         int pos = 0;
-        for( BufferIndex bufferIndex : rowIndex.bufferIndexes ) {
+        for (BufferIndex bufferIndex : rowIndex.bufferIndexes) {
             final MappedByteBuffer mappedByteBuffer = mappedByteBuffers.get(bufferIndex.index);
             final ByteBuffer byteBuffer;
             synchronized (mappedByteBuffer) {
@@ -68,7 +68,7 @@ public class IndexDataSource implements DataSource {
             }
             byteBuffer.position(bufferIndex.offset);
             byteBuffer.get(data, pos, bufferIndex.length);
-            pos+=bufferIndex.length;
+            pos += bufferIndex.length;
         }
         return new Row(rowIndex.lineNum, data);
     }
@@ -95,7 +95,7 @@ public class IndexDataSource implements DataSource {
             final long fileSize = fileChannel.size();
             while (filePos < fileSize) {
 
-                if( isAcrossBuffer ) {
+                if (isAcrossBuffer) {
                     // 如果当前跨buffer,需要将上一个buffer的pos快照保存
                     currentBufferIndexs.add(new BufferIndex(currentBufferIdx, currentBufferOffset, currentRowDataLengthInCurrentBuffer));
                 }
@@ -106,9 +106,7 @@ public class IndexDataSource implements DataSource {
                 currentBufferPos = 0;
                 currentRowDataLengthInCurrentBuffer = 0;
                 currentBufferOffset = 0;
-                mappedByteBuffers.add(currentBufferIdx=bufferIndexCounter++, buffer);
-
-
+                mappedByteBuffers.add(currentBufferIdx = bufferIndexCounter++, buffer);
 
 
                 // decode a line
@@ -152,7 +150,7 @@ public class IndexDataSource implements DataSource {
                             // reset
                             currentRowDataLengthInCurrentBuffer = 0;
                             currentRowDataLength = 0;
-                            currentBufferOffset=currentBufferPos;
+                            currentBufferOffset = currentBufferPos;
                             currentBufferIndexs.clear();
 
 

@@ -1,7 +1,6 @@
 package com.github.ompc.laser.client;
 
 import com.github.ompc.laser.common.LaserOptions;
-import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.SocketUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
@@ -24,6 +23,7 @@ import static com.github.ompc.laser.common.SocketUtils.write;
 /**
  * 客户端
  * Created by vlinux on 14-9-30.
+ *
  * @deprecated 已经被NioLaserClient所代替
  */
 public class LaserClient {
@@ -50,11 +50,12 @@ public class LaserClient {
 
     /**
      * 获取数据输出流
+     *
      * @param os
      * @return
      */
     private DataOutputStream getDataOutputStream(OutputStream os) {
-        if( options.getClientSendCorkSize() <= 0 ) {
+        if (options.getClientSendCorkSize() <= 0) {
             return new DataOutputStream(os);
         } else {
             return new DataOutputStream(new BufferedOutputStream(os, options.getClientSendCorkSize()));
@@ -86,6 +87,7 @@ public class LaserClient {
 
     /**
      * 开始干活
+     *
      * @throws IOException
      */
     public void work() throws IOException {
@@ -98,12 +100,12 @@ public class LaserClient {
             try {
                 while (isRunning) {
                     write(dos, new GetDataReq());
-                    if( options.isClientSendAutoFlush() ) {
+                    if (options.isClientSendAutoFlush()) {
                         dos.flush();
                     }
                 }
             } catch (IOException ioe) {
-                if( !socket.isClosed() ) {
+                if (!socket.isClosed()) {
                     log.warn("{} write data failed.", format(socket), ioe);
                 }
             }
@@ -121,14 +123,14 @@ public class LaserClient {
                         break;
                     } else if (p instanceof GetDataResp) {
                         // TODO : write to ringbuffer
-                        final GetDataResp resp = (GetDataResp)p;
+                        final GetDataResp resp = (GetDataResp) p;
                         dataPersistence.putRow(new Row(resp.getLineNum(), reverse(resp.getData())));
                     } else {
                         // can't happen
                     }
                 }
             } catch (IOException ioe) {
-                if( !socket.isClosed() ) {
+                if (!socket.isClosed()) {
                     log.warn("{} read data failed.", format(socket), ioe);
                 }
             }

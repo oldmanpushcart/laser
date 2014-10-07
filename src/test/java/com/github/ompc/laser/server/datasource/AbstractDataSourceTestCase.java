@@ -5,7 +5,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -57,7 +56,7 @@ public abstract class AbstractDataSourceTestCase {
 
         // 第1001行到达文件末尾需要Row的行号为-1
         final Row row = dataSource.getRow();
-        Assert.assertTrue(row.getLineNum()<0);
+        Assert.assertTrue(row.getLineNum() < 0);
 
     }
 
@@ -89,7 +88,7 @@ public abstract class AbstractDataSourceTestCase {
                                 unique.add(row.getLineNum());
                             }//if
 
-                            if( row.getLineNum() < 0 ) {
+                            if (row.getLineNum() < 0) {
                                 break;
                             }
                         }

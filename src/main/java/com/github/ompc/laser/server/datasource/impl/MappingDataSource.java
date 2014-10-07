@@ -1,6 +1,5 @@
 package com.github.ompc.laser.server.datasource.impl;
 
-import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import static java.lang.Runtime.getRuntime;
 /**
  * 内存映射数据源
  * Created by vlinux on 14-10-4.
+ *
  * @deprecated 使用PageDataSource
  */
 public class MappingDataSource implements DataSource {
@@ -145,7 +145,6 @@ public class MappingDataSource implements DataSource {
                 getRuntime().gc();
 
             }//while
-
 
 
         }//try

@@ -76,7 +76,7 @@ public class SocketUtils {
                 p = new GetEofResp();
                 break;
             default:
-                throw new IOException("illegal type="+type);
+                throw new IOException("illegal type=" + type);
         }
 
         return p;

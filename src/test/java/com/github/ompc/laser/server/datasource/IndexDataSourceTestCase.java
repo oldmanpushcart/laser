@@ -1,7 +1,6 @@
 package com.github.ompc.laser.server.datasource;
 
 import com.github.ompc.laser.server.datasource.impl.IndexDataSource;
-import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
 
 import java.io.File;
 

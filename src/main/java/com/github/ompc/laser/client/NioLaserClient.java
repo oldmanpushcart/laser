@@ -2,8 +2,6 @@ package com.github.ompc.laser.client;
 
 import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
-import com.github.ompc.laser.common.LaserUtils;
-import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -17,7 +15,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;

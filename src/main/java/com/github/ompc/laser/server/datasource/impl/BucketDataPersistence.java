@@ -22,6 +22,7 @@ import static com.github.ompc.laser.common.LaserUtils.unmap;
 /**
  * 分桶数据持久化
  * Created by vlinux on 14-10-4.
+ *
  * @deprecated 使用更高效的PageDataPersistence
  */
 public class BucketDataPersistence implements DataPersistence {
@@ -92,11 +93,11 @@ public class BucketDataPersistence implements DataPersistence {
                             for (int rowIdx = 0; rowIdx < rowCount; rowIdx++) {
                                 final Row row = rows[rowIdx];
 
-                                if( null == buffer ) {
-                                    log.info("debug for null, pos={}, byteCount={}",pos, byteCount);
+                                if (null == buffer) {
+                                    log.info("debug for null, pos={}, byteCount={}", pos, byteCount);
                                 }
 
-                                if( null == row ) {
+                                if (null == row) {
                                     log.info("debug for null,rowIdx={},bucket.rowCount={}", rowIdx, bucket.rowCount);
                                 }
 
@@ -200,7 +201,7 @@ public class BucketDataPersistence implements DataPersistence {
             // ingore...
         }
 
-        for( MappedByteBuffer buffer : waitForFlushBuffers ) {
+        for (MappedByteBuffer buffer : waitForFlushBuffers) {
             buffer.force();
             unmap(buffer);
         }

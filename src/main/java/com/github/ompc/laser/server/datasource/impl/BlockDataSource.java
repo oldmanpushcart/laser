@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 同步阻塞数据源
  * Created by vlinux on 14-9-21.
+ *
  * @deprecated 性能不行
  */
 public class BlockDataSource implements DataSource {
@@ -51,7 +52,7 @@ public class BlockDataSource implements DataSource {
     public Row getRow() throws IOException {
         final String line = reader.readLine();
         if (null == line) {
-            return new Row(-1,new byte[0]);
+            return new Row(-1, new byte[0]);
         }
         return new Row(lineCounter.getAndIncrement(), line.getBytes());
     }

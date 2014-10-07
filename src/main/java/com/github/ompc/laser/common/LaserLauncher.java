@@ -20,7 +20,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.lang.Runtime.getRuntime;
 import static java.lang.Thread.currentThread;
@@ -152,7 +155,7 @@ public class LaserLauncher {
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
 
-        final CyclicBarrier workCyclicBarrier = new CyclicBarrier(worksNum*2+1);
+        final CyclicBarrier workCyclicBarrier = new CyclicBarrier(worksNum * 2 + 1);
 
         final ExecutorService executorService = Executors.newCachedThreadPool((r) -> {
             final Thread t = new Thread(r);
@@ -162,11 +165,10 @@ public class LaserLauncher {
 
         final DataPersistence dataPersistence
                 // = new BucketDataPersistence(configer.getDataFile())
-                = new PageDataPersistence(configer.getDataFile())
-                ;
+                = new PageDataPersistence(configer.getDataFile());
 
         // 异步初始化数据源
-        executorService.execute(()->{
+        executorService.execute(() -> {
 
             try {
                 dataPersistence.init();
@@ -186,13 +188,13 @@ public class LaserLauncher {
         final Set<NioLaserClient> clients = new HashSet<>();
         for (int i = 0; i < worksNum; i++) {
 
-            executorService.execute(()->{
+            executorService.execute(() -> {
                 final NioLaserClient client = new NioLaserClient(countDown, workCyclicBarrier, executorService, dataPersistence, configer, options);
                 try {
                     client.connect();
                     clients.add(client);
                     client.work();
-                } catch(IOException e) {
+                } catch (IOException e) {
                     log.warn("client connect failed.", e);
                 }
 
@@ -242,8 +244,7 @@ public class LaserLauncher {
         final DataSource dataSource
                 // = new MappingDataSource(configer.getDataFile())
                 // = new BlockDataSource(configer.getDataFile())
-                = new PageDataSource(configer.getDataFile())
-                ;
+                = new PageDataSource(configer.getDataFile());
         dataSource.init();
 
         final CountDownLatch countDown = new CountDownLatch(1);//read&write

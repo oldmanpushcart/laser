@@ -1,7 +1,6 @@
 package com.github.ompc.laser.server;
 
 import com.github.ompc.laser.common.LaserOptions;
-import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
@@ -27,6 +26,7 @@ import static java.lang.Thread.currentThread;
 /**
  * 服务端
  * Created by vlinux on 14-9-29.
+ *
  * @deprecated 已经被NioLaserServer所代替
  */
 public class LaserServer {
@@ -60,7 +60,7 @@ public class LaserServer {
     public void startup() throws IOException {
         serverSocket = new ServerSocket();
         serverSocket.setSoTimeout(options.getServerSocketTimeout());
-        serverSocket.bind(new InetSocketAddress(configer.getPort()),options.getServerBacklog());
+        serverSocket.bind(new InetSocketAddress(configer.getPort()), options.getServerBacklog());
 
         // init accept thread
         executorService.execute(() -> {
@@ -79,11 +79,12 @@ public class LaserServer {
 
     /**
      * 获取数据输出流
+     *
      * @param os
      * @return
      */
     private DataOutputStream getDataOutputStream(OutputStream os) {
-        if( options.getServerChildSendCorkSize() <= 0 ) {
+        if (options.getServerChildSendCorkSize() <= 0) {
             return new DataOutputStream(os);
         } else {
             return new DataOutputStream(new BufferedOutputStream(os, options.getServerChildSendCorkSize()));
@@ -127,7 +128,7 @@ public class LaserServer {
 
                 }
             } catch (IOException ioe) {
-                if( !socket.isClosed() ) {
+                if (!socket.isClosed()) {
                     log.warn("{} read data failed.", format(socket), ioe);
                 }
             }
@@ -146,11 +147,11 @@ public class LaserServer {
 //                        continue;
 //                    }
 
-                    while( reqCounter.get() > 0 ) {
+                    while (reqCounter.get() > 0) {
                         final Row row = dataSource.getRow();
                         if (row.getLineNum() >= 0) {
                             write(dos, new GetDataResp(row.getLineNum(), process(row.getData())));
-                            if( options.isServerSendAutoFlush() ) {
+                            if (options.isServerSendAutoFlush()) {
                                 dos.flush();
                             }
                         } else {
@@ -163,7 +164,7 @@ public class LaserServer {
 
                 }
             } catch (IOException ioe) {
-                if( !socket.isClosed() ) {
+                if (!socket.isClosed()) {
                     log.warn("{} read data failed.", format(socket), ioe);
                 }
             }
