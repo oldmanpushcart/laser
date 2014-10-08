@@ -66,8 +66,8 @@ public class NioLaserClient {
         // config the socket
         final Socket socket = socketChannel.socket();
         socket.setTcpNoDelay(options.isClientTcpNoDelay());
-        socket.setReceiveBufferSize(options.getClientReceiverBufferSize());
-        socket.setSendBufferSize(options.getClientSendBufferSize());
+        socket.setReceiveBufferSize(options.getClientSocketReceiverBufferSize());
+        socket.setSendBufferSize(options.getClientSocketSendBufferSize());
         socket.setSoTimeout(options.getClientSocketTimeout());
         socket.setPerformancePreferences(
                 options.getClientPerformancePreferences()[0],
@@ -133,7 +133,7 @@ public class NioLaserClient {
                     log.warn("workCB await failed.", e);
                 }
 
-                final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
+                final ByteBuffer buffer = ByteBuffer.allocate(options.getClientSendBufferSize());
                 while (isRunning) {
 
 //                    final GetDataReq req = new GetDataReq();
@@ -175,14 +175,6 @@ public class NioLaserClient {
 
     };
 
-    private enum DecodeState {
-        READ_TYPE,
-        READ_GETDATA_LINENUM,
-        READ_GETDATA_LEN,
-        READ_GETDATA_DATA,
-        READ_GETEOF
-    }
-
     /**
      * 写线程
      */
@@ -193,7 +185,7 @@ public class NioLaserClient {
 
             currentThread().setName("client-" + format(socketChannel.socket()) + "-reader");
 
-            final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
+            final ByteBuffer buffer = ByteBuffer.allocate(options.getClientReceiverBufferSize());
             try (final Selector selector = Selector.open()) {
 
                 try {
@@ -330,6 +322,17 @@ public class NioLaserClient {
             log.info("{} disconnect successed.");
         }
 
+    }
+
+    /**
+     * 接收数据解码
+     */
+    enum DecodeState {
+        READ_TYPE,
+        READ_GETDATA_LINENUM,
+        READ_GETDATA_LEN,
+        READ_GETDATA_DATA,
+        READ_GETEOF
     }
 
 }

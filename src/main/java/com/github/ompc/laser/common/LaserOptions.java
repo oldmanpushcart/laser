@@ -11,7 +11,11 @@ import java.util.Properties;
  */
 public final class LaserOptions {
 
+    private boolean enableCompress = false;
+
     private int clientSocketTimeout;
+    private int clientSocketReceiverBufferSize;
+    private int clientSocketSendBufferSize;
     private int clientReceiverBufferSize;
     private int clientSendBufferSize;
     private int clientSendCorkSize;
@@ -23,7 +27,11 @@ public final class LaserOptions {
 
     private int serverSocketTimeout;
     private int serverBacklog;
+
+
     private int serverChildSocketTimeout;
+    private int serverChildSocketReceiverBufferSize;
+    private int serverChildSocketSendBufferSize;
     private int serverChildReceiverBufferSize;
     private int serverChildSendCorkSize;
     private int serverChildSendBufferSize;
@@ -38,7 +46,13 @@ public final class LaserOptions {
         final Properties properties = new Properties();
         properties.load(new FileInputStream(propertiesFile));
 
+        enableCompress = Boolean.valueOf(properties.getProperty("enable_compress"));
+
         clientSocketTimeout = Integer.valueOf(properties.getProperty("client.socket_timeout"));
+
+        clientSocketReceiverBufferSize = Integer.valueOf(properties.getProperty("client.socket_receiver_buffer_size"));
+        clientSocketSendBufferSize = Integer.valueOf(properties.getProperty("client.socket_send_buffer_size"));
+
         clientReceiverBufferSize = Integer.valueOf(properties.getProperty("client.receiver_buffer_size"));
         clientSendBufferSize = Integer.valueOf(properties.getProperty("client.send_buffer_size"));
         clientSendCorkSize = Integer.valueOf(properties.getProperty("client.send_cork_size"));
@@ -54,6 +68,8 @@ public final class LaserOptions {
         serverSocketTimeout = Integer.valueOf(properties.getProperty("server.socket_timeout"));
         serverBacklog = Integer.valueOf(properties.getProperty("server.backlog"));
         serverChildSocketTimeout = Integer.valueOf(properties.getProperty("server.child_socket_timeout"));
+        serverChildSocketReceiverBufferSize = Integer.valueOf(properties.getProperty("server.child_socket_receiver_buffer_size"));
+        serverChildSocketSendBufferSize = Integer.valueOf(properties.getProperty("server.child_socket_send_buffer_size"));
         serverChildReceiverBufferSize = Integer.valueOf(properties.getProperty("server.child_receiver_buffer_size"));
         serverChildSendBufferSize = Integer.valueOf(properties.getProperty("server.child_send_buffer_size"));
         serverChildSendCorkSize = Integer.valueOf(properties.getProperty("server.child_send_cork_size"));
@@ -143,4 +159,23 @@ public final class LaserOptions {
         return clientSendCorkSize;
     }
 
+    public boolean isEnableCompress() {
+        return enableCompress;
+    }
+
+    public int getClientSocketReceiverBufferSize() {
+        return clientSocketReceiverBufferSize;
+    }
+
+    public int getClientSocketSendBufferSize() {
+        return clientSocketSendBufferSize;
+    }
+
+    public int getServerChildSocketReceiverBufferSize() {
+        return serverChildSocketReceiverBufferSize;
+    }
+
+    public int getServerChildSocketSendBufferSize() {
+        return serverChildSocketSendBufferSize;
+    }
 }
