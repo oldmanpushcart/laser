@@ -61,7 +61,7 @@ public class CompressReadableByteChannel implements ReadableByteChannel {
                     }
                     final byte[] compressData = new byte[compressLength];
                     compressBuffer.get(compressData);
-                    final byte[] unCompressData = unCompress(compressData, 512);
+                    final byte[] unCompressData = unCompress(compressData, 10240);
                     unCompressBuffer.put(unCompressData);
                     unCompressBuffer.flip();
                     state = DecodeState.UN_COMPRESS;

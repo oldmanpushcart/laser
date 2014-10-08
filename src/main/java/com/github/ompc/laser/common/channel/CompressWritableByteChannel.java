@@ -69,7 +69,7 @@ public class CompressWritableByteChannel implements WritableByteChannel {
                     final byte[] unCompressData = new byte[unCompressBuffer.limit()];
                     unCompressBuffer.get(unCompressData);
                     unCompressBuffer.compact();
-                    final byte[] compressData = LaserUtils.compress(unCompressData, 1024);
+                    final byte[] compressData = LaserUtils.compress(unCompressData, 10240);
                     compressBuffer.putInt(compressData.length);
                     compressBuffer.put(compressData);
                     compressBuffer.flip();
