@@ -183,7 +183,7 @@ public class NioLaserServer {
 
                         DecodeState state = DecodeState.FILL_BUFF;
                         boolean isNeedSend = false;
-                        while (reqCounter.get() > 0) {
+                        while (true) {
 
                             switch (state) {
 
@@ -195,25 +195,28 @@ public class NioLaserServer {
                                         buffer.putInt(PRO_RESP_GETEOF);
                                         isNeedSend = true;
                                     } else {
-                                        reqCounter.decrementAndGet();
-                                        dataSource.getRow(row);
 
-                                        if (row.getLineNum() < 0) {
-                                            buffer.putInt(PRO_RESP_GETEOF);
-                                            isEOF = true;
-                                            isNeedSend = true;
-                                            log.info("arrive EOF");
-                                        } else {
-                                            buffer.putInt(PRO_RESP_GETDATA);
-                                            buffer.putInt(row.getLineNum());
+                                        if( reqCounter.get() > 0 ) {
+                                            reqCounter.decrementAndGet();
+                                            dataSource.getRow(row);
 
-                                            final byte[] _data = process(row.getData());
-                                            buffer.putInt(_data.length);
-                                            buffer.put(_data);
-
-                                            if (buffer.remaining() < LIMIT_REMAINING) {
-                                                // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
+                                            if (row.getLineNum() < 0) {
+                                                buffer.putInt(PRO_RESP_GETEOF);
+                                                isEOF = true;
                                                 isNeedSend = true;
+                                                log.info("arrive EOF");
+                                            } else {
+                                                buffer.putInt(PRO_RESP_GETDATA);
+                                                buffer.putInt(row.getLineNum());
+
+                                                final byte[] _data = process(row.getData());
+                                                buffer.putInt(_data.length);
+                                                buffer.put(_data);
+
+                                                if (buffer.remaining() < LIMIT_REMAINING) {
+                                                    // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
+                                                    isNeedSend = true;
+                                                }
                                             }
                                         }
 
