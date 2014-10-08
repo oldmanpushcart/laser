@@ -178,11 +178,11 @@ public class NioLaserServer {
                     final int LIMIT_REMAINING = 212;//TYPE(4B)+LINENUM(4B)+LEN(4B)+DATA(200B)
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
 
+                    DecodeState state = DecodeState.FILL_BUFF;
+                    boolean isNeedSend = false;
                     while (isRunning
                             && isWriterRunning) {
 
-                        DecodeState state = DecodeState.FILL_BUFF;
-                        boolean isNeedSend = false;
                         switch (state) {
 
                             case FILL_BUFF: {
