@@ -14,7 +14,7 @@ import static com.github.ompc.laser.common.LaserUtils.unCompress;
  * 实现GZIP压缩协议的ReadableByteChannel
  * Created by vlinux on 14-10-9.
  */
-public class GZIPReadableByteChannel implements ReadableByteChannel {
+public class CompressReadableByteChannel implements ReadableByteChannel {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final ReadableByteChannel readableByteChannel;
@@ -27,7 +27,7 @@ public class GZIPReadableByteChannel implements ReadableByteChannel {
     private int compressLength;
 
 
-    public GZIPReadableByteChannel(ReadableByteChannel readableByteChannel, int size) {
+    public CompressReadableByteChannel(ReadableByteChannel readableByteChannel, int size) {
         this.readableByteChannel = readableByteChannel;
         compressBuffer = ByteBuffer.allocate(size+Integer.BYTES);
         unCompressBuffer = ByteBuffer.allocate(size);

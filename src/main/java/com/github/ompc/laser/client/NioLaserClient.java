@@ -2,7 +2,7 @@ package com.github.ompc.laser.client;
 
 import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
-import com.github.ompc.laser.common.channel.GZIPReadableByteChannel;
+import com.github.ompc.laser.common.channel.CompressReadableByteChannel;
 import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -185,7 +185,7 @@ public class NioLaserClient {
 
             final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
             final ReadableByteChannel readableByteChannel = options.isEnableCompress()
-                    ? new GZIPReadableByteChannel(socketChannel, options.getCompressSize())
+                    ? new CompressReadableByteChannel(socketChannel, options.getCompressSize())
                     : socketChannel;
             try (final Selector selector = Selector.open()) {
 

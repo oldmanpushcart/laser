@@ -10,7 +10,7 @@ import java.nio.channels.WritableByteChannel;
  * 实现GZIP压缩协议的WritableByteChannel
  * Created by vlinux on 14-10-9.
  */
-public class GZIPWritableByteChannel implements WritableByteChannel {
+public class CompressWritableByteChannel implements WritableByteChannel {
 
     private final WritableByteChannel writableByteChannel;
 
@@ -20,15 +20,21 @@ public class GZIPWritableByteChannel implements WritableByteChannel {
 
     private DecodeState state = DecodeState.READ;
 
-    public GZIPWritableByteChannel(WritableByteChannel writableByteChannel, int size) {
+    public CompressWritableByteChannel(WritableByteChannel writableByteChannel, int size) {
         this.writableByteChannel = writableByteChannel;
         compressBuffer = ByteBuffer.allocate(size+Integer.BYTES);
         unCompressBuffer = ByteBuffer.allocate(size);
 //        unCompressData = new byte[size];
     }
 
-    @Override
-    public int write(ByteBuffer src) throws IOException {
+    /**
+     * 写ByteBuffer
+     * @param src 源ByteBuffer
+     * @param immediately 是否立即发送
+     * @return 本次写入数据量
+     * @throws IOException 写入异常
+     */
+    public int write(ByteBuffer src, boolean immediately) throws IOException {
         int count = 0;
 
         boolean hasMore = true;
@@ -49,7 +55,8 @@ public class GZIPWritableByteChannel implements WritableByteChannel {
                         count++;
                     }
 
-                    if (!unCompressBuffer.hasRemaining()) {
+                    if (!unCompressBuffer.hasRemaining()
+                            || immediately) {
                         unCompressBuffer.flip();
                         state = DecodeState.COMPRESS;
                     }
@@ -88,6 +95,11 @@ public class GZIPWritableByteChannel implements WritableByteChannel {
         }//while:hasMore
 
         return count;
+    }
+
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+        return write(src, false);
     }
 
     @Override

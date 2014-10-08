@@ -1,7 +1,7 @@
 package com.github.ompc.laser.server;
 
 import com.github.ompc.laser.common.LaserOptions;
-import com.github.ompc.laser.common.channel.GZIPWritableByteChannel;
+import com.github.ompc.laser.common.channel.CompressWritableByteChannel;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -166,7 +166,7 @@ public class NioLaserServer {
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildSendBufferSize());
                 final WritableByteChannel writableByteChannel = options.isEnableCompress()
-                        ? new GZIPWritableByteChannel(socketChannel, options.getCompressSize())
+                        ? new CompressWritableByteChannel(socketChannel, options.getCompressSize())
                         : socketChannel;
 
                 boolean isEOF = false;
@@ -237,7 +237,11 @@ public class NioLaserServer {
 
                                     if (key.isWritable()) {
                                         while (buffer.hasRemaining()) {
-                                            writableByteChannel.write(buffer);
+                                            if( writableByteChannel instanceof CompressWritableByteChannel ) {
+                                                ((CompressWritableByteChannel)writableByteChannel).write(buffer,isEOF);
+                                            } else {
+                                                writableByteChannel.write(buffer);
+                                            }
                                         }
                                         buffer.compact();
                                         state = DecodeState.FILL_BUFF;
