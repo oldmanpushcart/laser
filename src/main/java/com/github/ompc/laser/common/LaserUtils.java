@@ -31,8 +31,8 @@ public final class LaserUtils {
     /**
      * 对字节数组进行逆序
      *
-     * @param bricks
-     * @return
+     * @param bricks 需要逆序的字节数组
+     * @return 逆序后的字节数组
      */
     public static byte[] reverse(byte[] bricks) {
         if (null != bricks && bricks.length != 0) {
@@ -50,7 +50,7 @@ public final class LaserUtils {
     /**
      * 释放MappedByteBuffer
      *
-     * @param buffer
+     * @param buffer 需要被释放的映射缓存
      */
     public static void unmap(final MappedByteBuffer buffer) {
         if (buffer == null) {
@@ -59,13 +59,13 @@ public final class LaserUtils {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 try {
-                    Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
+                    Method getCleanerMethod = buffer.getClass().getMethod("cleaner");
                     if (getCleanerMethod != null) {
                         getCleanerMethod.setAccessible(true);
-                        Object cleaner = getCleanerMethod.invoke(buffer, new Object[0]);
-                        Method cleanMethod = cleaner.getClass().getMethod("clean", new Class[0]);
+                        Object cleaner = getCleanerMethod.invoke(buffer);
+                        Method cleanMethod = cleaner.getClass().getMethod("clean");
                         if (cleanMethod != null) {
-                            cleanMethod.invoke(cleaner, new Object[0]);
+                            cleanMethod.invoke(cleaner);
                         }
                     }
                 } catch (Exception e) {
