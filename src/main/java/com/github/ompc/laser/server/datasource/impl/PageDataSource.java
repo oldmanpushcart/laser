@@ -307,8 +307,6 @@ public class PageDataSource implements DataSource {
                                         final byte[] __data = LaserUtils.process(_data);
                                         dataBuffer.putInt(__data.length);
                                         dataBuffer.put(__data);
-                                        System.out.println(__data.length);
-
 
                                         tempBuffer.clear();
 
