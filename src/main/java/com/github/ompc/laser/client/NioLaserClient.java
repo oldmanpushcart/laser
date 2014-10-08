@@ -57,7 +57,7 @@ public class NioLaserClient {
     /**
      * 获取并配置SocketChannel
      *
-     * @return
+     * @return 返回SocketChannel
      * @throws IOException
      */
     private SocketChannel getAndConfigSocketChannel() throws IOException {
@@ -153,7 +153,8 @@ public class NioLaserClient {
                         iter.remove();
 
                         if (key.isWritable()) {
-                            final int count = socketChannel.write(buffer);
+//                            final int count =
+                            socketChannel.write(buffer);
 //                            log.info("debug for write, count="+count);
                             buffer.compact();
                             key.interestOps(key.interestOps() & ~OP_WRITE);
@@ -324,9 +325,10 @@ public class NioLaserClient {
         isRunning = false;
         if (null != socketChannel) {
             socketChannel.close();
+            log.info("{} disconnect successed.", format(socketChannel.socket()));
+        } else {
+            log.info("{} disconnect successed.");
         }
-
-        log.info("{} disconnect successed.", format(socketChannel.socket()));
 
     }
 
