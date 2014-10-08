@@ -296,15 +296,15 @@ public class NioLaserServer {
         socketChannel.configureBlocking(false);
         // config the socket
         final Socket socket = socketChannel.socket();
-        socket.setTcpNoDelay(options.isClientTcpNoDelay());
-        socket.setReceiveBufferSize(options.getServerChildReceiverBufferSize());
-        socket.setSendBufferSize(options.getServerChildSendBufferSize());
+        socket.setTcpNoDelay(options.isServerChildTcpNoDelay());
+        socket.setReceiveBufferSize(options.getServerChildSocketReceiverBufferSize());
+        socket.setSendBufferSize(options.getServerChildSocketSendBufferSize());
         socket.setSoTimeout(options.getServerChildSocketTimeout());
         socket.setPerformancePreferences(
-                options.getClientPerformancePreferences()[0],
-                options.getClientPerformancePreferences()[1],
-                options.getClientPerformancePreferences()[2]);
-        socket.setTrafficClass(options.getClientTrafficClass());
+                options.getServerChildPerformancePreferences()[0],
+                options.getServerChildPerformancePreferences()[1],
+                options.getServerChildPerformancePreferences()[2]);
+        socket.setTrafficClass(options.getServerChildTrafficClass());
     }
 
     /**
