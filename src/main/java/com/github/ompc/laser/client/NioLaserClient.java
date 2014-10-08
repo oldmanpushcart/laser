@@ -133,7 +133,7 @@ public class NioLaserClient {
                     log.warn("workCB await failed.", e);
                 }
 
-                final ByteBuffer buffer = ByteBuffer.allocate(options.getClientSendBufferSize());
+                final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
                 while (isRunning) {
 
 //                    final GetDataReq req = new GetDataReq();
@@ -185,7 +185,7 @@ public class NioLaserClient {
 
             currentThread().setName("client-" + format(socketChannel.socket()) + "-reader");
 
-            final ByteBuffer buffer = ByteBuffer.allocate(options.getClientReceiverBufferSize());
+            final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
             try (final Selector selector = Selector.open()) {
 
                 try {
