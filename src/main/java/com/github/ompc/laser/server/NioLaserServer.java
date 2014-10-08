@@ -183,83 +183,77 @@ public class NioLaserServer {
 
                         DecodeState state = DecodeState.FILL_BUFF;
                         boolean isNeedSend = false;
-                        while (true) {
+                        switch (state) {
 
-                            switch (state) {
+                            case FILL_BUFF: {
 
-                                case FILL_BUFF: {
+                                // 一进来就先判断是否到达了EOF，如果已经到达了则不需要访问数据源
+                                if (isEOF) {
+                                    reqCounter.decrementAndGet();
+                                    buffer.putInt(PRO_RESP_GETEOF);
+                                    isNeedSend = true;
+                                } else {
 
-                                    // 一进来就先判断是否到达了EOF，如果已经到达了则不需要访问数据源
-                                    if (isEOF) {
+                                    if (reqCounter.get() > 0) {
                                         reqCounter.decrementAndGet();
-                                        buffer.putInt(PRO_RESP_GETEOF);
-                                        isNeedSend = true;
-                                    } else {
+                                        dataSource.getRow(row);
 
-                                        if( reqCounter.get() > 0 ) {
-                                            reqCounter.decrementAndGet();
-                                            dataSource.getRow(row);
+                                        if (row.getLineNum() < 0) {
+                                            buffer.putInt(PRO_RESP_GETEOF);
+                                            isEOF = true;
+                                            isNeedSend = true;
+                                        } else {
+                                            buffer.putInt(PRO_RESP_GETDATA);
+                                            buffer.putInt(row.getLineNum());
 
-                                            if (row.getLineNum() < 0) {
-                                                buffer.putInt(PRO_RESP_GETEOF);
-                                                isEOF = true;
+                                            final byte[] _data = process(row.getData());
+                                            buffer.putInt(_data.length);
+                                            buffer.put(_data);
+
+                                            if (buffer.remaining() < LIMIT_REMAINING) {
+                                                // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
                                                 isNeedSend = true;
-                                                log.info("arrive EOF");
-                                            } else {
-                                                buffer.putInt(PRO_RESP_GETDATA);
-                                                buffer.putInt(row.getLineNum());
-
-                                                final byte[] _data = process(row.getData());
-                                                buffer.putInt(_data.length);
-                                                buffer.put(_data);
-
-                                                if (buffer.remaining() < LIMIT_REMAINING) {
-                                                    // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
-                                                    isNeedSend = true;
-                                                }
                                             }
                                         }
-
                                     }
 
-                                    // 前边层层处理之后是否需要发送
-                                    if (isNeedSend) {
-                                        buffer.flip();
-                                        state = DecodeState.SEND_BUFF;
-                                        isNeedSend = false;
-                                    }
-                                    break;
                                 }
 
+                                // 前边层层处理之后是否需要发送
+                                if (isNeedSend) {
+                                    buffer.flip();
+                                    state = DecodeState.SEND_BUFF;
+                                    isNeedSend = false;
+                                }
+                                break;
+                            }
 
-                                case SEND_BUFF: {
 
-                                    selector.select();
-                                    final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
-                                    while (iter.hasNext()) {
-                                        final SelectionKey key = iter.next();
-                                        iter.remove();
+                            case SEND_BUFF: {
 
-                                        if (key.isWritable()) {
-                                            // TODO : 没有判断write的返回值,遇到网络不好的情况就挂了
-                                            socketChannel.write(buffer);
-//                                            if (!buffer.hasRemaining()) {
-//                                                // 缓存中的内容发送完之后才跳转到填充
-//
-//                                            }
+                                selector.select();
+                                final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+                                while (iter.hasNext()) {
+                                    final SelectionKey key = iter.next();
+                                    iter.remove();
+
+                                    if (key.isWritable()) {
+                                        // TODO : 没有判断write的返回值,遇到网络不好的情况就挂了
+                                        socketChannel.write(buffer);
+                                        if (!buffer.hasRemaining()) {
+                                            // 缓存中的内容发送完之后才跳转到填充
                                             state = DecodeState.FILL_BUFF;
                                             buffer.compact();
-
                                         }
 
-                                    }//while:iter
+                                    }
 
-                                    break;
-                                }
+                                }//while:iter
 
-                            }//switch:state
+                                break;
+                            }
 
-                        }//while:reqCounter
+                        }//switch:state
 
                     }//while:MAIN_LOOP
 
