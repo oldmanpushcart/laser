@@ -280,7 +280,7 @@ public class NioLaserServer {
         socket.setTcpNoDelay(options.isClientTcpNoDelay());
         socket.setReceiveBufferSize(options.getClientReceiverBufferSize());
         socket.setSendBufferSize(options.getClientSendBufferSize());
-        socket.setSoTimeout(options.getClientSocketTimeout());
+        socket.setSoTimeout(options.getServerChildSocketTimeout());
         socket.setPerformancePreferences(
                 options.getClientPerformancePreferences()[0],
                 options.getClientPerformancePreferences()[1],
