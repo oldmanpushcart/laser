@@ -175,22 +175,18 @@ public class PageDataSource implements DataSource {
     @Override
     public void init() throws IOException {
 
-        // 初始化页码表
-        for (int i = 0; i < pageTable.length; i++) {
-            final Page page = new Page();
-            page.pageNum = i;
-            pageTable[i] = page;
-        }
-
-        // 并发将文件映射到内存中
-
-
-
         /*
          * 页面切换者<br/>
          * 切换页码表中已完成的页面
          */
         final Thread pageSwitcher = new Thread(() -> {
+
+            // 初始化页码表
+            for (int i = 0; i < pageTable.length; i++) {
+                final Page page = new Page();
+                page.pageNum = i;
+                pageTable[i] = page;
+            }
 
             // 下一次要替换掉的页码表编号(0~PAGE_TABLE_SIZE)
             int nextSwitchPageTableIndex = 0;
