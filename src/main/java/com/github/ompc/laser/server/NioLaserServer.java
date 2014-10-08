@@ -171,6 +171,7 @@ public class NioLaserServer {
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildSendBufferSize());
 
+                boolean isEOF = false;
                 final Row row = new Row();
                 try (final Selector selector = Selector.open()) {
 
@@ -182,7 +183,6 @@ public class NioLaserServer {
 
                         DecodeState state = DecodeState.FILL_BUFF;
                         boolean isNeedSend = false;
-                        boolean isEOF = false;
                         while (reqCounter.get() > 0) {
 
                             switch (state) {
@@ -191,6 +191,7 @@ public class NioLaserServer {
 
                                     // 一进来就先判断是否到达了EOF，如果已经到达了则不需要访问数据源
                                     if (isEOF) {
+                                        reqCounter.decrementAndGet();
                                         buffer.putInt(PRO_RESP_GETEOF);
                                         isNeedSend = true;
                                     } else {
