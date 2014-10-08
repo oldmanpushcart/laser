@@ -1,14 +1,9 @@
 package com.github.ompc.laser.common;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import static java.lang.System.arraycopy;
 
@@ -81,57 +76,5 @@ public final class LaserUtils {
 
         });
     }
-
-    /**
-     * 压缩ByteBuffer
-     *
-     * @param data
-     * @return
-     */
-    public static byte[] compress(byte[] data, int size) throws IOException {
-
-        try (final ByteArrayOutputStream baos = new ByteArrayOutputStream(size);
-             final GZIPOutputStream gzipos = new GZIPOutputStream(baos)) {
-            gzipos.write(data);
-            gzipos.finish();
-            gzipos.flush();
-            return baos.toByteArray();
-        }
-    }
-
-    /**
-     * 解压缩ByteBuffer
-     *
-     * @param data
-     * @return
-     */
-    public static byte[] unCompress(byte[] data, int size) throws IOException {
-        try (final ByteArrayOutputStream baos = new ByteArrayOutputStream(size);
-             final GZIPInputStream gzipis = new GZIPInputStream(new ByteArrayInputStream(data))) {
-            final byte[] buffer = new byte[size];
-            int n;
-            while ((n = gzipis.read(buffer)) >= 0) {
-                baos.write(buffer, 0, n);
-            }
-            return baos.toByteArray();
-        }
-    }
-
-    public static void main(String... args) throws IOException {
-
-        final String str = "";
-        final long s = System.currentTimeMillis();
-        for (int i = 0; i < 10000; i++) {
-            final byte[] data = compress(str.getBytes(), 1024);
-            System.out.println(data.length);
-            final String str2 = new String(unCompress(data,1024));
-            if( !str.equals(str2) ) {
-                throw new IOException("str != str2");
-            }
-        }
-        System.out.println(System.currentTimeMillis() - s);
-
-    }
-
 
 }

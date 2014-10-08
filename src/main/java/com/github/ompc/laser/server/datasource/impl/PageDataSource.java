@@ -1,5 +1,6 @@
 package com.github.ompc.laser.server.datasource.impl;
 
+import com.github.ompc.laser.common.LaserUtils;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -300,8 +301,15 @@ public class PageDataSource implements DataSource {
                                         tempBuffer.flip();
                                         final int dataLength = tempBuffer.limit();
                                         dataBuffer.putInt(lineCounter++);
-                                        dataBuffer.putInt(dataLength);
-                                        dataBuffer.put(tempBuffer);
+
+                                        final byte[] _data = new byte[dataLength];
+                                        tempBuffer.get(_data);
+                                        final byte[] __data = LaserUtils.process(_data);
+                                        dataBuffer.putInt(__data.length);
+                                        dataBuffer.put(__data);
+                                        System.out.println(__data.length);
+
+
                                         tempBuffer.clear();
 
 

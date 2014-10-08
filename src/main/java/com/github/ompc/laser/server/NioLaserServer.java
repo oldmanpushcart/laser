@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.github.ompc.laser.common.LaserConstant.*;
-import static com.github.ompc.laser.common.LaserUtils.process;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
 
@@ -204,9 +203,8 @@ public class NioLaserServer {
                                             buffer.putInt(PRO_RESP_GETDATA);
                                             buffer.putInt(row.getLineNum());
 
-                                            final byte[] _data = process(row.getData());
-                                            buffer.putInt(_data.length);
-                                            buffer.put(_data);
+                                            buffer.putInt(row.getData().length);
+                                            buffer.put(row.getData());
 
                                             if (buffer.remaining() < LIMIT_REMAINING) {
                                                 // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
