@@ -1,6 +1,7 @@
 package com.github.ompc.laser.server;
 
 import com.github.ompc.laser.common.LaserOptions;
+import com.github.ompc.laser.common.channel.GZIPWritableByteChannel;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -10,10 +11,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -167,6 +165,9 @@ public class NioLaserServer {
 
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildSendBufferSize());
+                final WritableByteChannel writableByteChannel = options.isEnableCompress()
+                        ? new GZIPWritableByteChannel(socketChannel, options.getCompressSize())
+                        : socketChannel;
 
                 boolean isEOF = false;
                 final Row row = new Row();
@@ -236,7 +237,7 @@ public class NioLaserServer {
 
                                     if (key.isWritable()) {
                                         while (buffer.hasRemaining()) {
-                                            socketChannel.write(buffer);
+                                            writableByteChannel.write(buffer);
                                         }
                                         buffer.compact();
                                         state = DecodeState.FILL_BUFF;
@@ -294,8 +295,8 @@ public class NioLaserServer {
         // config the socket
         final Socket socket = socketChannel.socket();
         socket.setTcpNoDelay(options.isClientTcpNoDelay());
-        socket.setReceiveBufferSize(options.getClientSocketReceiverBufferSize());
-        socket.setSendBufferSize(options.getClientSocketSendBufferSize());
+        socket.setReceiveBufferSize(options.getServerChildReceiverBufferSize());
+        socket.setSendBufferSize(options.getServerChildSendBufferSize());
         socket.setSoTimeout(options.getServerChildSocketTimeout());
         socket.setPerformancePreferences(
                 options.getClientPerformancePreferences()[0],

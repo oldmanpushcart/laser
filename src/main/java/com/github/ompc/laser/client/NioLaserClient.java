@@ -2,6 +2,7 @@ package com.github.ompc.laser.client;
 
 import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
+import com.github.ompc.laser.common.channel.GZIPReadableByteChannel;
 import com.github.ompc.laser.server.datasource.DataPersistence;
 import com.github.ompc.laser.server.datasource.Row;
 import org.slf4j.Logger;
@@ -10,10 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.CancelledKeyException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -186,6 +184,9 @@ public class NioLaserClient {
             currentThread().setName("client-" + format(socketChannel.socket()) + "-reader");
 
             final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
+            final ReadableByteChannel readableByteChannel = options.isEnableCompress()
+                    ? new GZIPReadableByteChannel(socketChannel, options.getCompressSize())
+                    : socketChannel;
             try (final Selector selector = Selector.open()) {
 
                 try {
@@ -214,7 +215,7 @@ public class NioLaserClient {
 
                         if (key.isReadable()) {
 
-                            socketChannel.read(buffer);
+                            readableByteChannel.read(buffer);
                             buffer.flip();
 
                             boolean hasMore = true;
