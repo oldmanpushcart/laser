@@ -31,4 +31,9 @@ public class LaserConstant {
      */
     public static final int PRO_RESP_GETEOF = PRO_MC << 16 | 0x03;
 
+//    /**
+//     * 返回压缩数据
+//     */
+//    public static final int PRO_RESP_GETCOMPRESS = PRO_MC << 16 | 0X04;
+
 }

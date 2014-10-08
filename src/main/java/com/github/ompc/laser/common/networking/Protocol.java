@@ -3,6 +3,7 @@ package com.github.ompc.laser.common.networking;
 /**
  * 协议基类
  * Created by vlinux on 14-9-29.
+ * @deprecated 不再使用
  */
 public abstract class Protocol {
 

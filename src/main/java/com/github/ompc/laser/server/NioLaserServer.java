@@ -15,7 +15,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,7 +32,6 @@ public class NioLaserServer {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final DataSource dataSource;
-    private final CountDownLatch countDown;
     private final ExecutorService executorService;
     private final ServerConfiger configer;
     private final LaserOptions options;
@@ -43,9 +41,8 @@ public class NioLaserServer {
     private boolean isReaderRunning = true;
     private boolean isWriterRunning = true;
 
-    public NioLaserServer(DataSource dataSource, CountDownLatch countDown, ExecutorService executorService, ServerConfiger configer, LaserOptions options) {
+    public NioLaserServer(DataSource dataSource, ExecutorService executorService, ServerConfiger configer, LaserOptions options) {
         this.dataSource = dataSource;
-        this.countDown = countDown;
         this.executorService = executorService;
         this.configer = configer;
         this.options = options;
@@ -238,7 +235,7 @@ public class NioLaserServer {
                                     iter.remove();
 
                                     if (key.isWritable()) {
-                                        while( buffer.hasRemaining() ) {
+                                        while (buffer.hasRemaining()) {
                                             socketChannel.write(buffer);
                                         }
                                         buffer.compact();
@@ -277,7 +274,7 @@ public class NioLaserServer {
     /**
      * 获取并配置ServerSocketChannel
      *
-     * @return
+     * @return 返回配置好的ServerSocketChannel
      * @throws IOException
      */
     private ServerSocketChannel getServerSocketChannel() throws IOException {

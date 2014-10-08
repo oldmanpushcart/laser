@@ -12,20 +12,19 @@ public class Test {
         final ByteBuffer buffer = ByteBuffer.allocate(1024);
         buffer.putInt(4);
         buffer.putInt(4);
-
-        System.out.println(buffer.position());
+        buffer.flip();
+        System.out.println(buffer.remaining());
+        buffer.compact();
 
         buffer.flip();
-
-        System.out.println(buffer.limit());
-
-        buffer.getInt();
-
-        System.out.println(buffer.position());
-        System.out.println(buffer.position());
+        System.out.println(buffer.remaining());
 
         buffer.compact();
         System.out.println(buffer.remaining());
+
+        buffer.compact();
+        System.out.println(buffer.remaining());
+
 
     }
 

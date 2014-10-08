@@ -250,7 +250,7 @@ public class LaserLauncher {
         final CountDownLatch countDown = new CountDownLatch(1);//read&write
         final ExecutorService executorService = Executors.newCachedThreadPool();
 
-        final NioLaserServer server = new NioLaserServer(dataSource, countDown, executorService, configer, options);
+        final NioLaserServer server = new NioLaserServer(dataSource, executorService, configer, options);
         server.startup();
 
         // registe shutdown

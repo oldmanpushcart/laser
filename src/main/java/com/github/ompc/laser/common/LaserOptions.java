@@ -12,6 +12,7 @@ import java.util.Properties;
 public final class LaserOptions {
 
     private boolean enableCompress = false;
+    private int compressSize;
 
     private int clientSocketTimeout;
     private int clientSocketReceiverBufferSize;
@@ -47,6 +48,7 @@ public final class LaserOptions {
         properties.load(new FileInputStream(propertiesFile));
 
         enableCompress = Boolean.valueOf(properties.getProperty("enable_compress"));
+        compressSize = Integer.valueOf(properties.getProperty("compress_size"));
 
         clientSocketTimeout = Integer.valueOf(properties.getProperty("client.socket_timeout"));
 
@@ -177,5 +179,9 @@ public final class LaserOptions {
 
     public int getServerChildSocketSendBufferSize() {
         return serverChildSocketSendBufferSize;
+    }
+
+    public int getCompressSize() {
+        return compressSize;
     }
 }
