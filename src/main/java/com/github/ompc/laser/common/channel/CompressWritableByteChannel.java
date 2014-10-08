@@ -16,7 +16,7 @@ public class CompressWritableByteChannel implements WritableByteChannel {
 
     private final ByteBuffer compressBuffer;
     private final ByteBuffer unCompressBuffer;
-//    private final byte[] unCompressData;
+    private final ByteBufferCompress compress = new GZIPByteBufferCompress();
 
     private DecodeState state = DecodeState.READ;
 
@@ -66,12 +66,14 @@ public class CompressWritableByteChannel implements WritableByteChannel {
 
                 case COMPRESS: {
 
-                    final byte[] unCompressData = new byte[unCompressBuffer.limit()];
-                    unCompressBuffer.get(unCompressData);
+//                    final byte[] unCompressData = new byte[unCompressBuffer.limit()];
+//                    unCompressBuffer.get(unCompressData);
+//                    unCompressBuffer.compact();
+//                    final byte[] compressData = LaserUtils.compress(unCompressData, 1024);
+//                    compressBuffer.putInt(compressData.length);
+//                    compressBuffer.put(compressData);
+                    compress.compress(unCompressBuffer,unCompressBuffer.limit(), compressBuffer);
                     unCompressBuffer.compact();
-                    final byte[] compressData = LaserUtils.compress(unCompressData, 1024);
-                    compressBuffer.putInt(compressData.length);
-                    compressBuffer.put(compressData);
                     compressBuffer.flip();
                     state = DecodeState.WRITE_DATA;
 

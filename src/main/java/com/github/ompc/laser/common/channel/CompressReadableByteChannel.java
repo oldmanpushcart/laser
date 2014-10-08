@@ -1,14 +1,11 @@
 package com.github.ompc.laser.common.channel;
 
-import com.github.ompc.laser.common.LaserUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
-
-import static com.github.ompc.laser.common.LaserUtils.unCompress;
 
 /**
  * 实现GZIP压缩协议的ReadableByteChannel
@@ -18,6 +15,7 @@ public class CompressReadableByteChannel implements ReadableByteChannel {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final ReadableByteChannel readableByteChannel;
+    private final ByteBufferCompress compress = new GZIPByteBufferCompress();
 
     private final ByteBuffer compressBuffer;
     private final ByteBuffer unCompressBuffer;
@@ -59,10 +57,11 @@ public class CompressReadableByteChannel implements ReadableByteChannel {
                     if( compressBuffer.remaining() < compressLength ) {
                         break;
                     }
-                    final byte[] compressData = new byte[compressLength];
-                    compressBuffer.get(compressData);
-                    final byte[] unCompressData = unCompress(compressData, 1024);
-                    unCompressBuffer.put(unCompressData);
+//                    final byte[] compressData = new byte[compressLength];
+//                    compressBuffer.get(compressData);
+//                    final byte[] unCompressData = unCompress(compressData, 1024);
+//                    unCompressBuffer.put(unCompressData);
+                    compress.unCompress(compressBuffer, compressLength, unCompressBuffer);
                     unCompressBuffer.flip();
                     state = DecodeState.UN_COMPRESS;
                 }
