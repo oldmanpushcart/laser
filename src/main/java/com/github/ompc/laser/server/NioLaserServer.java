@@ -242,6 +242,14 @@ public class NioLaserServer {
                                             socketChannel.write(buffer);
                                         }
                                         buffer.compact();
+                                        state = DecodeState.FILL_BUFF;
+
+//                                        if (!buffer.hasRemaining()) {
+//                                            // 缓存中的内容发送完之后才跳转到填充
+//                                            state = DecodeState.FILL_BUFF;
+//                                            buffer.compact();
+//                                        }
+
                                     }
 
                                 }//while:iter
