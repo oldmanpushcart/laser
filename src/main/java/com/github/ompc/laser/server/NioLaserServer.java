@@ -240,11 +240,12 @@ public class NioLaserServer {
                                         if (key.isWritable()) {
                                             // TODO : 没有判断write的返回值,遇到网络不好的情况就挂了
                                             socketChannel.write(buffer);
-                                            if (!buffer.hasRemaining()) {
-                                                // 缓存中的内容发送完之后才跳转到填充
-                                                state = DecodeState.FILL_BUFF;
-                                                buffer.compact();
-                                            }
+//                                            if (!buffer.hasRemaining()) {
+//                                                // 缓存中的内容发送完之后才跳转到填充
+//
+//                                            }
+                                            state = DecodeState.FILL_BUFF;
+                                            buffer.compact();
 
                                         }
 
