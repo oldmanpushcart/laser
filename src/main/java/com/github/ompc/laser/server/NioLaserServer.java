@@ -202,6 +202,7 @@ public class NioLaserServer {
                                             buffer.putInt(PRO_RESP_GETEOF);
                                             isEOF = true;
                                             isNeedSend = true;
+                                            log.info("arrive EOF");
                                         } else {
                                             buffer.putInt(PRO_RESP_GETDATA);
                                             buffer.putInt(row.getLineNum());
