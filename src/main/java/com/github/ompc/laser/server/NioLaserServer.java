@@ -235,11 +235,12 @@ public class NioLaserServer {
 
                                     if (key.isWritable()) {
                                         while (buffer.hasRemaining()) {
-                                            if( writableByteChannel instanceof CompressWritableByteChannel ) {
-                                                ((CompressWritableByteChannel)writableByteChannel).write(buffer,isEOF);
-                                            } else {
-                                                writableByteChannel.write(buffer);
-                                            }
+//                                            if( writableByteChannel instanceof CompressWritableByteChannel ) {
+//                                                ((CompressWritableByteChannel)writableByteChannel).write(buffer,isEOF);
+//                                            } else {
+//                                                writableByteChannel.write(buffer);
+//                                            }
+                                            writableByteChannel.write(buffer);
                                         }
                                         buffer.compact();
                                         state = DecodeState.FILL_BUFF;
