@@ -1,6 +1,5 @@
 package com.github.ompc.laser.server;
 
-import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.server.datasource.DataSource;
 import com.github.ompc.laser.server.datasource.Row;
@@ -20,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.github.ompc.laser.common.LaserConstant.PRO_REQ_GETDATA;
+import static com.github.ompc.laser.common.LaserConstant.*;
 import static com.github.ompc.laser.common.LaserUtils.process;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
@@ -171,74 +170,90 @@ public class NioLaserServer {
 
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildSendBufferSize());
+
                 final Row row = new Row();
                 try (final Selector selector = Selector.open()) {
 
                     final int LIMIT_REMAINING = 212;//TYPE(4B)+LINENUM(4B)+LEN(4B)+DATA(200B)
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
+
                     while (isRunning
                             && isWriterRunning) {
 
-                        boolean isEof = false;
-                        while (buffer.remaining() >= LIMIT_REMAINING
-                                && !isEof) {
+                        DecodeState state = DecodeState.FILL_BUFF;
+                        boolean isNeedSend = false;
+                        boolean isEOF = false;
+                        while (reqCounter.get() > 0) {
 
-                            while (reqCounter.get() > 0) {
+                            switch (state) {
 
-                                if (buffer.remaining() < LIMIT_REMAINING) {
-                                    // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
+                                case FILL_BUFF: {
+
+                                    // 一进来就先判断是否到达了EOF，如果已经到达了则不需要访问数据源
+                                    if (isEOF) {
+                                        buffer.putInt(PRO_RESP_GETEOF);
+                                        isNeedSend = true;
+                                    } else {
+                                        reqCounter.decrementAndGet();
+                                        dataSource.getRow(row);
+
+                                        if (row.getLineNum() < 0) {
+                                            buffer.putInt(PRO_RESP_GETEOF);
+                                            isEOF = true;
+                                            isNeedSend = true;
+                                        } else {
+                                            buffer.putInt(PRO_RESP_GETDATA);
+                                            buffer.putInt(row.getLineNum());
+
+                                            final byte[] _data = process(row.getData());
+                                            buffer.putInt(_data.length);
+                                            buffer.put(_data);
+
+                                            if (buffer.remaining() < LIMIT_REMAINING) {
+                                                // TODO : 目前这里利用了DATA长度不超过200的限制，没有足够的通用性，后续改掉
+                                                isNeedSend = true;
+                                            }
+                                        }
+
+                                    }
+
+                                    // 前边层层处理之后是否需要发送
+                                    if (isNeedSend) {
+                                        buffer.flip();
+                                        state = DecodeState.SEND_BUFF;
+                                        isNeedSend = false;
+                                    }
                                     break;
                                 }
 
-                                reqCounter.decrementAndGet();
-                                dataSource.getRow(row);
 
-                                if (row.getLineNum() < 0) {
-                                    // EOF
-//                                    final GetEofResp resp = new GetEofResp();
-//                                    buffer.putInt(resp.getType());
-                                    // 优化,避免产生大量碎片对象
-                                    buffer.putInt(LaserConstant.PRO_RESP_GETEOF);
-                                    isEof = true;
+                                case SEND_BUFF: {
+
+                                    selector.select();
+                                    final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+                                    while (iter.hasNext()) {
+                                        final SelectionKey key = iter.next();
+                                        iter.remove();
+
+                                        if (key.isWritable()) {
+                                            // TODO : 没有判断write的返回值,遇到网络不好的情况就挂了
+                                            socketChannel.write(buffer);
+                                            if (!buffer.hasRemaining()) {
+                                                // 缓存中的内容发送完之后才跳转到填充
+                                                state = DecodeState.FILL_BUFF;
+                                                buffer.compact();
+                                            }
+
+                                        }
+
+                                    }//while:iter
+
                                     break;
-                                } else {
-                                    // normal
-//                                    final GetDataResp resp = new GetDataResp(row.getLineNum(), process(row.getData()));
-//                                    buffer.putInt(resp.getType());
-                                    // 优化,避免产生大量碎片对象
-                                    buffer.putInt(LaserConstant.PRO_RESP_GETDATA);
-                                    buffer.putInt(row.getLineNum());
-
-                                    final byte[] _data = process(row.getData());
-                                    buffer.putInt(_data.length);
-                                    buffer.put(_data);
                                 }
 
-                            }//while
+                            }//switch:state
 
-                        }
-
-
-                        // 这里似乎有点多余~
-//                        socketChannel.register(selector, OP_WRITE);
-                        buffer.flip();
-
-                        selector.select();
-                        final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
-                        while (iter.hasNext()) {
-                            final SelectionKey key = iter.next();
-                            iter.remove();
-
-                            if (key.isWritable()) {
-//                                log.info("debug for write, pos={};remaining={}",
-//                                        new Object[]{buffer.position(),buffer.remaining()});
-                                final int count = socketChannel.write(buffer);
-//                                log.info("debug for write, count={}",new Object[]{count});
-                                buffer.compact();
-//                                key.interestOps(key.interestOps() & ~OP_WRITE);
-                            }
-
-                        }//while:iter
+                        }//while:reqCounter
 
                     }//while:MAIN_LOOP
 
@@ -316,6 +331,15 @@ public class NioLaserServer {
 
         log.info("server[port={}] shutdown successed.", configer.getPort());
 
+    }
+
+
+    /**
+     * 发送数据解码
+     */
+    enum DecodeState {
+        FILL_BUFF,
+        SEND_BUFF
     }
 
 }
