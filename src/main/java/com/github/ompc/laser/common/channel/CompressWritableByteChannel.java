@@ -1,7 +1,5 @@
 package com.github.ompc.laser.common.channel;
 
-import com.github.ompc.laser.common.LaserUtils;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
