@@ -146,7 +146,6 @@ public class PageDataSource implements DataSource {
                     final int nextPageIdx = (paggNum + 1) % PAGE_TABLE_SIZE;
                     while (pageTable[nextPageIdx].pageNum != paggNum + 1) {
                         // spin for switch
-                        Thread.yield();
                     }
                     currentPage = pageTable[nextPageIdx];
                 }
