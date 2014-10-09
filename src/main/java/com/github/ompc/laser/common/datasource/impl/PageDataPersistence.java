@@ -53,7 +53,7 @@ public class PageDataPersistence implements DataPersistence {
      * 页码表大小<br/>
      * 一共有几页
      */
-    private final int PAGE_TABLE_SIZE = 32;
+    private final int PAGE_TABLE_SIZE = 48;
 
 
     /*
