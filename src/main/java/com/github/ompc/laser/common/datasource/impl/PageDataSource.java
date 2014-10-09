@@ -259,7 +259,7 @@ public class PageDataSource implements DataSource {
                                 // 需要关闭页面切换者
                                 // 将当前页标记为最后一页
                                 page.isLast = true;
-                                break FILL_PAGE_LOOP;
+                                break;
                             }
 
                             while (mappedBuffer.hasRemaining()) {
