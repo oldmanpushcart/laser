@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -132,7 +132,8 @@ public class PageDataPersistence implements DataPersistence {
                 .put(LINE_DELIMITER);
 
         // 更新页面数据
-        page.byteCount.addAndGet(validByteCount);
+//        page.byteCount.addAndGet(validByteCount);
+        page.byteCount.add(validByteCount);
 
         // 如果页面已被写满，则需要唤醒页面切换者
         if (page.rowCount.incrementAndGet() == PAGE_ROWS_NUM) {
@@ -209,7 +210,7 @@ public class PageDataPersistence implements DataPersistence {
                     try {
 
                         // 写完文件缓存后丢入待刷新队列中
-                        final MappedByteBuffer mappedBuffer = fileChannel.map(READ_WRITE, fileOffset, page.byteCount.get());
+                        final MappedByteBuffer mappedBuffer = fileChannel.map(READ_WRITE, fileOffset, page.byteCount.longValue());
                         final ByteBuffer dataBuffer = ByteBuffer.wrap(page.data);
 //                        final int rowCount = page.rowCount.get();
                         for (int rowIdx = 0; rowIdx < rowCount; rowIdx++) {
@@ -225,7 +226,7 @@ public class PageDataPersistence implements DataPersistence {
                         waitingFlushBufferMap.put(page.pageNum, mappedBuffer);
 
                         // 重设当前页码数据
-                        page.byteCount.set(0);
+                        page.byteCount.reset();
                         page.rowCount.set(0);
                         page.pageNum += PAGE_TABLE_SIZE;
                         fileOffset += mappedBuffer.capacity();
@@ -301,7 +302,7 @@ public class PageDataPersistence implements DataPersistence {
 
     /**
      * 缓存页<br/>
-     * <p>
+     * <p/>
      * 一页有10^6行
      */
     class Page {
@@ -319,7 +320,8 @@ public class PageDataPersistence implements DataPersistence {
         /*
          * 页面总字节数
          */
-        AtomicLong byteCount = new AtomicLong(0);
+//        AtomicLong byteCount = new AtomicLong(0);
+        LongAdder byteCount = new LongAdder();
 
         /*
          * 数据段
