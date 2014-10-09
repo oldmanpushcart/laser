@@ -142,9 +142,9 @@ public class PageDataSource implements DataSource {
                         pageSwitchLock.unlock();
                     }
 
-                    final int paggNum = page.pageNum;
-                    final int nextPageIdx = (paggNum + 1) % PAGE_TABLE_SIZE;
-                    while (pageTable[nextPageIdx].pageNum != paggNum + 1) {
+                    final int pageNum = page.pageNum;
+                    final int nextPageIdx = (pageNum + 1) % PAGE_TABLE_SIZE;
+                    while (pageTable[nextPageIdx].pageNum != pageNum + 1) {
                         // spin for switch
                     }
                     currentPage = pageTable[nextPageIdx];
