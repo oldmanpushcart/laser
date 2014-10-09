@@ -6,12 +6,12 @@ import com.github.ompc.laser.client.NioLaserClient;
 import com.github.ompc.laser.server.LaserServer;
 import com.github.ompc.laser.server.NioLaserServer;
 import com.github.ompc.laser.server.ServerConfiger;
-import com.github.ompc.laser.server.datasource.DataPersistence;
-import com.github.ompc.laser.server.datasource.DataSource;
-import com.github.ompc.laser.server.datasource.impl.BucketDataPersistence;
-import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
-import com.github.ompc.laser.server.datasource.impl.PageDataPersistence;
-import com.github.ompc.laser.server.datasource.impl.PageDataSource;
+import com.github.ompc.laser.common.datasource.DataPersistence;
+import com.github.ompc.laser.common.datasource.DataSource;
+import com.github.ompc.laser.common.datasource.impl.BucketDataPersistence;
+import com.github.ompc.laser.common.datasource.impl.MappingDataSource;
+import com.github.ompc.laser.common.datasource.impl.PageDataPersistence;
+import com.github.ompc.laser.common.datasource.impl.PageDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

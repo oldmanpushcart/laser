@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
+ * ByteBuffer压缩
  * Created by vlinux on 14-10-9.
  */
 public interface ByteBufferCompress {

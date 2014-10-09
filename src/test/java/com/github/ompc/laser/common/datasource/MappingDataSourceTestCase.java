@@ -1,6 +1,6 @@
-package com.github.ompc.laser.server.datasource;
+package com.github.ompc.laser.common.datasource;
 
-import com.github.ompc.laser.server.datasource.impl.MappingDataSource;
+import com.github.ompc.laser.common.datasource.impl.MappingDataSource;
 
 import java.io.File;
 

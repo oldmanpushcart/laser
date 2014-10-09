@@ -6,8 +6,8 @@ import com.github.ompc.laser.common.networking.GetDataReq;
 import com.github.ompc.laser.common.networking.GetDataResp;
 import com.github.ompc.laser.common.networking.GetEofResp;
 import com.github.ompc.laser.common.networking.Protocol;
-import com.github.ompc.laser.server.datasource.DataPersistence;
-import com.github.ompc.laser.server.datasource.Row;
+import com.github.ompc.laser.common.datasource.DataPersistence;
+import com.github.ompc.laser.common.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

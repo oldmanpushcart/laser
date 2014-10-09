@@ -1,8 +1,8 @@
-package com.github.ompc.laser.server.datasource.impl;
+package com.github.ompc.laser.common.datasource.impl;
 
 import com.github.ompc.laser.common.LaserUtils;
-import com.github.ompc.laser.server.datasource.DataSource;
-import com.github.ompc.laser.server.datasource.Row;
+import com.github.ompc.laser.common.datasource.DataSource;
+import com.github.ompc.laser.common.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,13 +84,6 @@ public class PageDataSource implements DataSource {
 
     private volatile Page currentPage = null;
 
-    /**
-     * 使用这个方法避免大量对象创建
-     *
-     * @param row
-     * @return
-     * @throws IOException
-     */
     @Override
     public Row getRow(Row row) throws IOException {
         if (isEOF) {
@@ -212,7 +205,6 @@ public class PageDataSource implements DataSource {
                 // 行解析状态机
                 DecodeLineState state = DecodeLineState.READ_D;
 
-                MAIN_LOOP:
                 while (fileOffset < fileSize) {
 
                     // 遍历页码表，主要做两件事
@@ -271,7 +263,6 @@ public class PageDataSource implements DataSource {
                                 break FILL_PAGE_LOOP;
                             }
 
-                            DECODE_LOOP:
                             while (mappedBuffer.hasRemaining()) {
                                 switch (state) {
                                     case READ_D: {

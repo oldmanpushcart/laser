@@ -1,4 +1,4 @@
-package com.github.ompc.laser.server.datasource;
+package com.github.ompc.laser.common.datasource;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ public interface DataSource {
     /**
      * 获取一行数据
      *
-     * @param row
+     * @param row 希望被填充的行
      * @return 返回一行数据
      * @throws IOException 若文件访问失败，则抛出IOException
      *                     若到达文件末端，则抛出EOFException

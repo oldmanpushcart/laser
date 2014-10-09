@@ -8,6 +8,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
+ * GZIP压缩实现
  * Created by vlinux on 14-10-9.
  */
 public class GZIPByteBufferCompress implements ByteBufferCompress {

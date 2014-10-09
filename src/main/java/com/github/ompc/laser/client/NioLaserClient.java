@@ -3,8 +3,8 @@ package com.github.ompc.laser.client;
 import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.channel.CompressReadableByteChannel;
-import com.github.ompc.laser.server.datasource.DataPersistence;
-import com.github.ompc.laser.server.datasource.Row;
+import com.github.ompc.laser.common.datasource.DataPersistence;
+import com.github.ompc.laser.common.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

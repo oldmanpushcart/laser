@@ -2,8 +2,8 @@ package com.github.ompc.laser.server;
 
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.channel.CompressWritableByteChannel;
-import com.github.ompc.laser.server.datasource.DataSource;
-import com.github.ompc.laser.server.datasource.Row;
+import com.github.ompc.laser.common.datasource.DataSource;
+import com.github.ompc.laser.common.datasource.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

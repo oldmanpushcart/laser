@@ -1,4 +1,4 @@
-package com.github.ompc.laser.server.datasource;
+package com.github.ompc.laser.common.datasource;
 
 import junit.framework.Assert;
 import org.junit.After;
