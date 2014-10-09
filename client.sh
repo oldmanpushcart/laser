@@ -14,6 +14,7 @@ java \
     -XX:+CMSClassUnloadingEnabled \
     -XX:CMSInitiatingOccupancyFraction=80 \
     -XX:+UseCMSInitiatingOccupancyOnly \
+    -XX:CompileThreshold=5000 \
     -XX:-PrintCompilation \
     -XX:PretenureSizeThreshold=1048576 \
     -XX:+UseThreadPriorities \
