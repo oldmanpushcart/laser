@@ -23,7 +23,7 @@ import static com.github.ompc.laser.common.LaserConstant.*;
 import static com.github.ompc.laser.common.LaserUtils.reverse;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
-import static java.nio.channels.SelectionKey.OP_CONNECT;
+import static java.nio.channels.SelectionKey.*;
 
 /**
  * NIO版本的LaserClient
@@ -147,6 +147,8 @@ public class NioLaserClient {
                 ReaderDecodeState readerState = ReaderDecodeState.READ_TYPE;
                 WriterDecodeState writerState = WriterDecodeState.WRITE_TYPE;
 
+                socketChannel.register(selector, OP_READ | OP_WRITE);
+
                 MAIN_LOOP:
                 while (isRunning) {
 
@@ -162,7 +164,7 @@ public class NioLaserClient {
 
                                 case WRITE_TYPE: {
                                     writerBuffer.putInt(PRO_REQ_GETDATA);
-                                    if( !writerBuffer.hasRemaining() ) {
+                                    if (!writerBuffer.hasRemaining()) {
                                         writerBuffer.flip();
                                         writerState = WriterDecodeState.WRITE_DATA;
                                     }
@@ -170,7 +172,7 @@ public class NioLaserClient {
 
                                 case WRITE_DATA: {
                                     socketChannel.write(writerBuffer);
-                                    if( !writerBuffer.hasRemaining() ) {
+                                    if (!writerBuffer.hasRemaining()) {
                                         writerBuffer.compact();
                                         writerState = WriterDecodeState.WRITE_TYPE;
                                     }
