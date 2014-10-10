@@ -168,6 +168,7 @@ public class NioLaserClient {
                                         writerBuffer.flip();
                                         writerState = WriterDecodeState.WRITE_DATA;
                                     }
+                                    break;
                                 }
 
                                 case WRITE_DATA: {
