@@ -155,7 +155,7 @@ public class LaserLauncher {
 
         final CountDownLatch countDown = new CountDownLatch(worksNum);
 
-        final CyclicBarrier workCyclicBarrier = new CyclicBarrier(worksNum + 1);
+        final CyclicBarrier workCyclicBarrier = new CyclicBarrier(worksNum * 2 + 1);
 
         final ExecutorService executorService = Executors.newCachedThreadPool((r) -> {
             final Thread t = new Thread(r);

@@ -103,7 +103,6 @@ public class NioLaserServer {
             public void run() {
 
                 currentThread().setName("child-" + format(socketChannel.socket()) + "-reader");
-                currentThread().setPriority(Thread.MAX_PRIORITY);
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildReceiverBufferSize());
                 try (final Selector selector = Selector.open()) {
@@ -161,7 +160,7 @@ public class NioLaserServer {
             public void run() {
 
                 currentThread().setName("child-" + format(socketChannel.socket()) + "-writer");
-
+                currentThread().setPriority(Thread.MAX_PRIORITY);
 
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getServerChildSendBufferSize());
                 final WritableByteChannel writableByteChannel = options.isEnableCompress()

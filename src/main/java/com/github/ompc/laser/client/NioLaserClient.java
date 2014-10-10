@@ -1,5 +1,6 @@
 package com.github.ompc.laser.client;
 
+import com.github.ompc.laser.common.LaserConstant;
 import com.github.ompc.laser.common.LaserOptions;
 import com.github.ompc.laser.common.channel.CompressReadableByteChannel;
 import com.github.ompc.laser.common.datasource.DataPersistence;
@@ -10,16 +11,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 
-import static com.github.ompc.laser.common.LaserConstant.*;
+import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETDATA;
+import static com.github.ompc.laser.common.LaserConstant.PRO_RESP_GETEOF;
 import static com.github.ompc.laser.common.LaserUtils.reverse;
 import static com.github.ompc.laser.common.SocketUtils.format;
 import static java.lang.Thread.currentThread;
@@ -115,20 +114,13 @@ public class NioLaserClient {
     }
 
     /**
-     * 开始干活
-     *
-     * @throws IOException
+     * 读线程
      */
-    public void work() throws IOException {
+    final Runnable writer = new Runnable() {
 
-        executorService.execute(() -> {
-
-            currentThread().setName("client-" + format(socketChannel.socket()));
-            final ByteBuffer writerBuffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
-            final ByteBuffer readerBuffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
-            final ReadableByteChannel readableByteChannel = options.isEnableCompress()
-                    ? new CompressReadableByteChannel(socketChannel, options.getCompressSize())
-                    : socketChannel;
+        @Override
+        public void run() {
+            currentThread().setName("client-" + format(socketChannel.socket()) + "-writer");
 
             try (final Selector selector = Selector.open()) {
 
@@ -138,17 +130,79 @@ public class NioLaserClient {
                     log.warn("workCB await failed.", e);
                 }
 
+                final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientSendBufferSize());
+                while (isRunning) {
+
+//                    final GetDataReq req = new GetDataReq();
+                    if (buffer.remaining() >= Integer.BYTES) {
+//                        buffer.putInt(req.getType());
+                        buffer.putInt(LaserConstant.PRO_REQ_GETDATA);
+                        continue;
+                    } else {
+                        socketChannel.register(selector, OP_WRITE);
+                        buffer.flip();
+                    }
+
+                    selector.select();
+                    final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+                    while (iter.hasNext()) {
+                        final SelectionKey key = iter.next();
+                        iter.remove();
+
+                        if (key.isWritable()) {
+//                            final int count =
+                            socketChannel.write(buffer);
+//                            log.info("debug for write, count="+count);
+                            buffer.compact();
+                            key.interestOps(key.interestOps() & ~OP_WRITE);
+                        }
+
+                    }
+
+                }
+
+            } catch (CancelledKeyException cke) {
+                // ingore...
+            } catch (IOException ioe) {
+                if (!socketChannel.socket().isClosed()) {
+                    log.warn("{} write failed.", format(socketChannel.socket()), ioe);
+                }
+            }
+        }
+
+    };
+
+    /**
+     * 写线程
+     */
+    final Runnable reader = new Runnable() {
+
+        @Override
+        public void run() {
+
+            currentThread().setName("client-" + format(socketChannel.socket()) + "-reader");
+            currentThread().setPriority(Thread.MAX_PRIORITY);
+
+            final ByteBuffer buffer = ByteBuffer.allocateDirect(options.getClientReceiverBufferSize());
+            final ReadableByteChannel readableByteChannel = options.isEnableCompress()
+                    ? new CompressReadableByteChannel(socketChannel, options.getCompressSize())
+                    : socketChannel;
+            try (final Selector selector = Selector.open()) {
+
+                try {
+                    workCyclicBarrier.await();
+                } catch (Exception e) {
+                    log.warn("workCB await failed.", e);
+                }
 
                 // decode
                 int type;
                 int lineNum = 0;
                 int len = 0;
                 final Row row = new Row();
-                ReaderDecodeState readerState = ReaderDecodeState.READ_TYPE;
-                WriterDecodeState writerState = WriterDecodeState.WRITE_TYPE;
+                DecodeState state = DecodeState.READ_TYPE;
 
-                socketChannel.register(selector, OP_READ | OP_WRITE);
-
+                socketChannel.register(selector, OP_READ);
                 MAIN_LOOP:
                 while (isRunning) {
 
@@ -159,114 +213,99 @@ public class NioLaserClient {
                         final SelectionKey key = iter.next();
                         iter.remove();
 
-                        if (key.isWritable()) {
-                            switch (writerState) {
-
-                                case WRITE_TYPE: {
-                                    writerBuffer.putInt(PRO_REQ_GETDATA);
-                                    if (!writerBuffer.hasRemaining()) {
-                                        writerBuffer.flip();
-                                        writerState = WriterDecodeState.WRITE_DATA;
-                                    }
-                                    break;
-                                }
-
-                                case WRITE_DATA: {
-                                    socketChannel.write(writerBuffer);
-                                    if (!writerBuffer.hasRemaining()) {
-                                        writerBuffer.compact();
-                                        writerState = WriterDecodeState.WRITE_TYPE;
-                                    }
-                                }
-
-                            }
-                        }//if:writable
-
                         if (key.isReadable()) {
 
-                            readableByteChannel.read(readerBuffer);
-                            readerBuffer.flip();
+                            readableByteChannel.read(buffer);
+                            buffer.flip();
 
-                            switch (readerState) {
+                            boolean hasMore = true;
+                            while (hasMore) {
+                                hasMore = false;
+                                switch (state) {
+                                    case READ_TYPE:
+                                        if (buffer.remaining() < Integer.BYTES) {
+                                            break;
+                                        }
+                                        type = buffer.getInt();
+                                        if (type == PRO_RESP_GETDATA) {
+                                            state = DecodeState.READ_GETDATA_LINENUM;
+                                        } else if (type == PRO_RESP_GETEOF) {
+                                            state = DecodeState.READ_GETEOF;
+                                            break;
+                                        } else {
+                                            throw new IOException("decode failed, illegal type=" + type);
+                                        }
+                                    case READ_GETDATA_LINENUM:
+                                        if (buffer.remaining() < Integer.BYTES) {
+                                            break;
+                                        }
+                                        lineNum = buffer.getInt();
+                                        state = DecodeState.READ_GETDATA_LEN;
+                                    case READ_GETDATA_LEN:
+                                        if (buffer.remaining() < Integer.BYTES) {
+                                            break;
+                                        }
+                                        len = buffer.getInt();
+                                        state = DecodeState.READ_GETDATA_DATA;
+                                    case READ_GETDATA_DATA:
+                                        if (buffer.remaining() < len) {
+                                            break;
+                                        }
+                                        final byte[] data = new byte[len];
+                                        buffer.get(data);
+                                        reverse(data);
 
-                                case READ_TYPE: {
-                                    if (readerBuffer.remaining() < Integer.BYTES) {
+                                        state = DecodeState.READ_TYPE;
+                                        hasMore = true;
+
+                                        // handler GetDataResp
+                                        // 由于这里没有做任何异步化操作,包括dataPersistence中也没有
+                                        // 所以这里优化将new去掉,避免过多的对象分配
+                                        row.setLineNum(lineNum);
+                                        row.setData(data);
+                                        dataPersistence.putRow(row);
+
+
                                         break;
-                                    }
-                                    type = readerBuffer.getInt();
-                                    if (type == PRO_RESP_GETDATA) {
-                                        readerState = ReaderDecodeState.READ_GETDATA_LINENUM;
-                                    } else if (type == PRO_RESP_GETEOF) {
-                                        readerState = ReaderDecodeState.READ_GETEOF;
-                                        break;
-                                    } else {
-                                        throw new IOException("decode failed, illegal type=" + type);
-                                    }
-                                }
+                                    case READ_GETEOF:
+                                        // 收到EOF，结束整个client
+                                        isRunning = false;
+                                        countDown.countDown();
+                                        log.info("{} receive EOF.", format(socketChannel.socket()));
+                                        break MAIN_LOOP;
 
-                                case READ_GETDATA_LINENUM: {
-                                    if (readerBuffer.remaining() < Integer.BYTES) {
-                                        break;
-                                    }
-                                    lineNum = readerBuffer.getInt();
-                                    readerState = ReaderDecodeState.READ_GETDATA_LEN;
-                                }
+                                    default:
+                                        throw new IOException("decode failed, illegal state=" + state);
+                                }//switch
 
-                                case READ_GETDATA_LEN: {
-                                    if (readerBuffer.remaining() < Integer.BYTES) {
-                                        break;
-                                    }
-                                    len = readerBuffer.getInt();
-                                    readerState = ReaderDecodeState.READ_GETDATA_DATA;
-                                }
+                            }//while:hasMore
 
-                                case READ_GETDATA_DATA: {
-                                    if (readerBuffer.remaining() < len) {
-                                        break;
-                                    }
-                                    final byte[] data = new byte[len];
-                                    readerBuffer.get(data);
-                                    reverse(data);
-
-                                    readerState = ReaderDecodeState.READ_TYPE;
-
-                                    // handler GetDataResp
-                                    // 由于这里没有做任何异步化操作,包括dataPersistence中也没有
-                                    // 所以这里优化将new去掉,避免过多的对象分配
-                                    row.setLineNum(lineNum);
-                                    row.setData(data);
-                                    dataPersistence.putRow(row);
-                                    break;
-                                }
-
-                                case READ_GETEOF: {
-                                    // 收到EOF，结束整个client
-                                    isRunning = false;
-                                    countDown.countDown();
-                                    log.info("{} receive EOF.", format(socketChannel.socket()));
-                                    break MAIN_LOOP;
-                                }
-
-
-                                default:
-                                    throw new IOException("decode failed, illegal readerState=" + readerState);
-                            }//switch
+                            buffer.compact();
 
                         }//if:readable
 
                     }//while:iter
 
-                }//while:isRunning
-
+                }//while:MAIN_LOOP
 
             } catch (IOException ioe) {
                 if (!socketChannel.socket().isClosed()) {
-                    log.warn("{} client handle failed.", format(socketChannel.socket()), ioe);
+                    log.warn("{} read failed.", format(socketChannel.socket()), ioe);
                 }
             }
 
-        });
+        }
 
+    };
+
+    /**
+     * 开始干活
+     *
+     * @throws IOException
+     */
+    public void work() throws IOException {
+        executorService.execute(writer);
+        executorService.execute(reader);
     }
 
     /**
@@ -287,17 +326,9 @@ public class NioLaserClient {
     }
 
     /**
-     * 写数据编码
-     */
-    enum WriterDecodeState {
-        WRITE_TYPE,
-        WRITE_DATA
-    }
-
-    /**
      * 接收数据解码
      */
-    enum ReaderDecodeState {
+    enum DecodeState {
         READ_TYPE,
         READ_GETDATA_LINENUM,
         READ_GETDATA_LEN,
