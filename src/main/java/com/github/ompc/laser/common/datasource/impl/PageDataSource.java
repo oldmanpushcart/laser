@@ -115,44 +115,44 @@ public class PageDataSource implements DataSource {
 //                continue;
 //            }
 
-            if( page.readCount.incrementAndGet() >= rowCount ) {
-                continue;
-            }
+            if( page.readCount.getAndIncrement() <= rowCount ) {
+                final int offsetOfRow = readCount * PAGE_ROW_SIZE;
+                final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
+                final int lineNum = byteBuffer.getInt();
+                final int validByteCount = byteBuffer.getInt();
+                final byte[] data = new byte[validByteCount];
+                byteBuffer.get(data);
+                row.setLineNum(lineNum);
+                row.setData(data);
 
-            final int offsetOfRow = readCount * PAGE_ROW_SIZE;
-            final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
-            final int lineNum = byteBuffer.getInt();
-            final int validByteCount = byteBuffer.getInt();
-            final byte[] data = new byte[validByteCount];
-            byteBuffer.get(data);
-            row.setLineNum(lineNum);
-            row.setData(data);
+                // 到了页末
+                if (page.readCount.get() >= rowCount) {
 
-            // 到了页末
-            if (page.readCount.get() >= rowCount) {
+                    if (page.isLast) {
+                        isEOF = true;
+                    } else {
 
-                if (page.isLast) {
-                    isEOF = true;
-                } else {
+                        pageSwitchLock.lock();
+                        try {
+                            pageSwitchWakeUpCondition.signal();
+                        } finally {
+                            pageSwitchLock.unlock();
+                        }
 
-                    pageSwitchLock.lock();
-                    try {
-                        pageSwitchWakeUpCondition.signal();
-                    } finally {
-                        pageSwitchLock.unlock();
+                        final int pageNum = page.pageNum;
+                        final int nextPageIdx = (pageNum + 1) % PAGE_TABLE_SIZE;
+                        while (pageTable[nextPageIdx].pageNum != pageNum + 1) {
+                            // spin for switch
+                        }
+                        currentPage = pageTable[nextPageIdx];
                     }
 
-                    final int pageNum = page.pageNum;
-                    final int nextPageIdx = (pageNum + 1) % PAGE_TABLE_SIZE;
-                    while (pageTable[nextPageIdx].pageNum != pageNum + 1) {
-                        // spin for switch
-                    }
-                    currentPage = pageTable[nextPageIdx];
                 }
 
+                return row;
             }
 
-            return row;
+
 
         }
     }
