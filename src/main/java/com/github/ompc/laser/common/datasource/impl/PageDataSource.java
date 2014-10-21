@@ -112,7 +112,7 @@ public class PageDataSource implements DataSource {
 
             if (!page.readCount.increment(readCount)) {
                 // 这里更新真心热...有啥好办法咧？
-                // log.info("debug for page.readCount CAS. readCount={}",readCount);
+                log.info("debug for page.readCount CAS. readCount={}",readCount);
                 continue;
             }
 
