@@ -97,7 +97,7 @@ public class PageDataSource implements DataSource {
             final int readCount = page.readCount.get();
             final int rowCount = page.rowCount;
 
-            if( readCount == rowCount ) {
+            if( readCount >= rowCount ) {
 
                 if( page.isLast ) {
                     row.setLineNum(EMPTY_ROW.getLineNum());
@@ -109,21 +109,27 @@ public class PageDataSource implements DataSource {
 
             }
 
-            if (!page.readCount.compareAndSet(readCount, readCount + 1)) {
-                // 这里更新真心热...有啥好办法咧？
-                // log.info("debug for page.readCount CAS. readCount={}",readCount);
+//            if (!page.readCount.compareAndSet(readCount, readCount + 1)) {
+//                // 这里更新真心热...有啥好办法咧？
+//                // log.info("debug for page.readCount CAS. readCount={}",readCount);
+//                continue;
+//            }
+
+            if( page.readCount.incrementAndGet() >= rowCount ) {
                 continue;
             }
 
             final int offsetOfRow = readCount * PAGE_ROW_SIZE;
-
             final ByteBuffer byteBuffer = ByteBuffer.wrap(page.data, offsetOfRow, PAGE_ROW_SIZE);
             final int lineNum = byteBuffer.getInt();
             final int validByteCount = byteBuffer.getInt();
             final byte[] data = new byte[validByteCount];
             byteBuffer.get(data);
+            row.setLineNum(lineNum);
+            row.setData(data);
 
-            if (page.readCount.get() == rowCount) {
+            // 到了页末
+            if (page.readCount.get() >= rowCount) {
 
                 if (page.isLast) {
                     isEOF = true;
@@ -145,9 +151,6 @@ public class PageDataSource implements DataSource {
                 }
 
             }
-
-            row.setLineNum(lineNum);
-            row.setData(data);
 
             return row;
 
