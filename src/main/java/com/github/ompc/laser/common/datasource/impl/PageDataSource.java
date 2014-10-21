@@ -1,6 +1,7 @@
 package com.github.ompc.laser.common.datasource.impl;
 
 import com.github.ompc.laser.common.LaserUtils;
+import com.github.ompc.laser.common.atomic.HashAtomicInteger;
 import com.github.ompc.laser.common.datasource.DataSource;
 import com.github.ompc.laser.common.datasource.Row;
 import org.slf4j.Logger;
@@ -97,22 +98,20 @@ public class PageDataSource implements DataSource {
             final int readCount = page.readCount.get();
             final int rowCount = page.rowCount;
 
-            if (page.isLast
-                    && readCount == rowCount) {
-                if (null == row) {
-                    return EMPTY_ROW;
-                } else {
+            if( readCount == rowCount ) {
+
+                if( page.isLast ) {
                     row.setLineNum(EMPTY_ROW.getLineNum());
                     row.setData(EMPTY_ROW.getData());
                     return row;
+                } else {
+                    continue;
                 }
+
             }
 
-            if (readCount == rowCount) {
-                continue;
-            }
-
-            if (!page.readCount.compareAndSet(readCount, readCount + 1)) {
+            if (!page.readCount.compareAndSet(readCount, readCount, readCount + 1)) {
+                // 这里更新真心热...有啥好办法咧？
                 log.info("debug for page.readCount CAS. readCount={}",readCount);
                 continue;
             }
@@ -311,7 +310,7 @@ public class PageDataSource implements DataSource {
 
                         // 重新计算页面参数
                         page.rowCount = rowIdx;
-                        page.readCount.set(0);
+                        page.readCount.reset();
                         log.info("page.pageNum={} was switched. fileOffset={},fileSize={},page.rowCount={};",
                                 page.pageNum, fileOffset, fileSize, page.rowCount);
 
@@ -372,7 +371,7 @@ public class PageDataSource implements DataSource {
         /*
          * 已被读取行数
          */
-        AtomicInteger readCount = new AtomicInteger(0);
+        HashAtomicInteger readCount = new HashAtomicInteger();
 
         /*
          * 是否最后一页
