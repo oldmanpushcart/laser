@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public final class HashIntegerCounter {
 
     private final AtomicInteger[] integers = new AtomicInteger[Runtime.getRuntime().availableProcessors()];
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final AtomicInteger counter = new AtomicInteger();
 
 
     public HashIntegerCounter() {
@@ -29,7 +29,12 @@ public final class HashIntegerCounter {
     public final boolean increment(int expect) {
         final int length = integers.length;
         final int hashExpect = expect/length;
-        return integers[expect % length].compareAndSet(hashExpect,hashExpect+1);
+        if(integers[expect % length].compareAndSet(hashExpect,hashExpect+1)) {
+            counter.incrementAndGet();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -37,30 +42,18 @@ public final class HashIntegerCounter {
      * @return 但前计数总数
      */
     public final int get() {
-        int count = 0;
-        lock.readLock().lock();
-        try {
-            for(AtomicInteger integer : integers) {
-                count += integer.get();
-            }
-        } finally {
-            lock.readLock().unlock();
-        }
-        return count;
+        return counter.get();
     }
 
     /**
-     * 计数器清0
+     * 计数器清0<br/>
+     * 线程不安全
      */
     public final void reset() {
-        lock.writeLock().lock();
-        try {
-            for(AtomicInteger integer : integers) {
-                integer.set(0);
-            }
-        } finally {
-            lock.writeLock().unlock();
+        for(AtomicInteger integer : integers) {
+            integer.set(0);
         }
+        counter.set(0);
     }
 
 }
