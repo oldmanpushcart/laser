@@ -113,6 +113,7 @@ public class PageDataSource implements DataSource {
             }
 
             if (!page.readCount.compareAndSet(readCount, readCount + 1)) {
+                log.info("debug for page.readCount CAS. readCount={}",readCount);
                 continue;
             }
 

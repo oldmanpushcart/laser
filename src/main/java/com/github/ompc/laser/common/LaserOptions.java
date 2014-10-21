@@ -26,6 +26,7 @@ public final class LaserOptions {
 
     private int serverSocketTimeout;
     private int serverBacklog;
+    private boolean serverDebug;
 
 
     private int serverChildSocketTimeout;
@@ -63,6 +64,7 @@ public final class LaserOptions {
 
         serverSocketTimeout = Integer.valueOf(properties.getProperty("server.socket_timeout"));
         serverBacklog = Integer.valueOf(properties.getProperty("server.backlog"));
+        serverDebug = Boolean.valueOf(properties.getProperty("server.debug"));
         serverChildSocketTimeout = Integer.valueOf(properties.getProperty("server.child_socket_timeout"));
         serverChildSocketReceiverBufferSize = Integer.valueOf(properties.getProperty("server.child_socket_receiver_buffer_size"));
         serverChildSocketSendBufferSize = Integer.valueOf(properties.getProperty("server.child_socket_send_buffer_size"));
@@ -159,5 +161,9 @@ public final class LaserOptions {
 
     public int getCompressSize() {
         return compressSize;
+    }
+
+    public boolean isServerDebug() {
+        return serverDebug;
     }
 }

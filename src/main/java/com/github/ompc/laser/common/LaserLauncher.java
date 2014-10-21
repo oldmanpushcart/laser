@@ -4,6 +4,7 @@ import com.github.ompc.laser.client.ClientConfiger;
 import com.github.ompc.laser.client.NioLaserClient;
 import com.github.ompc.laser.common.datasource.DataPersistence;
 import com.github.ompc.laser.common.datasource.DataSource;
+import com.github.ompc.laser.common.datasource.impl.MockDataSource;
 import com.github.ompc.laser.common.datasource.impl.PageDataPersistence;
 import com.github.ompc.laser.common.datasource.impl.PageDataSource;
 import com.github.ompc.laser.server.NioLaserServer;
@@ -122,7 +123,9 @@ public class LaserLauncher {
 
         final LaserOptions options = new LaserOptions(new File(args[3]));
 
-        final DataSource dataSource = new PageDataSource(configer.getDataFile());
+        final DataSource dataSource = options.isServerDebug()
+                ? new MockDataSource()
+                : new PageDataSource(configer.getDataFile());
         dataSource.init();
 
         final CountDownLatch countDown = new CountDownLatch(1);
