@@ -49,13 +49,13 @@ public abstract class AbstractDataSourceTestCase {
         final DataSource dataSource = getDataSource(false);
         // 头1000行正常获取
         for (int index = 0; index < 1000; index++) {
-            final Row row = dataSource.getRow();
+            final Row row = dataSource.getRow(new Row());
             Assert.assertEquals(row.getLineNum(), index);
             Assert.assertTrue(row.getData().length > 0);
         }
 
         // 第1001行到达文件末尾需要Row的行号为-1
-        final Row row = dataSource.getRow();
+        final Row row = dataSource.getRow(new Row());
         Assert.assertTrue(row.getLineNum() < 0);
 
     }
@@ -80,7 +80,7 @@ public abstract class AbstractDataSourceTestCase {
                     forks[i] = executors.submit(() -> {
                         int counter = 0;
                         while (true) {
-                            final Row row = dataSource.getRow();
+                            final Row row = dataSource.getRow(new Row());
                             if (row.getLineNum() >= 0
                                     && row.getData().length > 0
                                     && !unique.contains(row.getLineNum())) {

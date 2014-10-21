@@ -87,13 +87,7 @@ public class PageDataSource implements DataSource {
     @Override
     public Row getRow(Row row) throws IOException {
         if (isEOF) {
-            if (null == row) {
-                return EMPTY_ROW;
-            } else {
-                row.setLineNum(EMPTY_ROW.getLineNum());
-                row.setData(EMPTY_ROW.getData());
-                return row;
-            }
+            return EMPTY_ROW;
         }
 
         while (true) {
@@ -152,20 +146,12 @@ public class PageDataSource implements DataSource {
 
             }
 
-            if (null == row) {
-                row = new Row();
-            } else {
-                row.setLineNum(lineNum);
-                row.setData(data);
-            }
+            row.setLineNum(lineNum);
+            row.setData(data);
 
             return row;
 
         }
-    }
-
-    public Row getRow() throws IOException {
-        return getRow(null);
     }
 
     @Override
@@ -325,7 +311,7 @@ public class PageDataSource implements DataSource {
                         page.rowCount = rowIdx;
                         page.readCount.set(0);
                         log.info("page.pageNum={} was switched. fileOffset={},fileSize={},page.rowCount={};",
-                                new Object[]{page.pageNum, fileOffset, fileSize, page.rowCount});
+                                page.pageNum, fileOffset, fileSize, page.rowCount);
 
                         if (fileOffset == fileSize) {
                             page.isLast = true;
