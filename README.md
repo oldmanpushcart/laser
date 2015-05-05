@@ -13,6 +13,8 @@
 镭射项目必须找到一个好的代码组织结构，以便通过切换参数就能变更具体的实现方式。这要求有比较好的软件工程底，提前划分好interface进行隔离。
 
 
-	
+## 项目结果
 
+顺利跑进了5秒，但距离3秒差距还是太大，这里是总结文档
 
+[阿里中间件性能挑战赛java跑进5s“作弊”版](https://raw.githubusercontent.com/oldmanpushcart/laser/master/doc/阿里中间件性能挑战赛java跑进5s“作弊”版.pdf)
